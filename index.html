@@ -7,7 +7,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0f1117;--card:#1a1d27;--border:#2a2d3a;--text:#e2e4eb;--dim:#8b8fa3;--accent:#6c5ce7;--accent2:#a29bfe;--green:#00b894;--red:#e17055;--yellow:#fdcb6e}
+:root{--bg:#0f1117;--card:#1a1d27;--border:#2a2d3a;--text:#e2e4eb;--dim:#8b8fa3;--accent:#6c5ce7;--accent2:#a29bfe;--green:#00b894;--red:#e17055;--yellow:#fdcb6e;--orange:#e67e22}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 .header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .header h1{font-size:1.3rem;font-weight:600;color:var(--accent2)}
@@ -15,6 +15,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .tab{padding:8px 18px;border-radius:6px;cursor:pointer;font-size:.85rem;color:var(--dim);transition:.2s;border:none;background:none}
 .tab.active{background:var(--accent);color:#fff}
 .tab:hover:not(.active){color:var(--text)}
+.badge{display:inline-block;background:var(--red);color:#fff;font-size:.65rem;padding:1px 6px;border-radius:8px;margin-left:6px;vertical-align:middle}
 .controls{padding:12px 24px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--border)}
 .controls select,.controls input{background:var(--card);border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:6px;font-size:.82rem}
 .controls input{width:220px}
@@ -34,11 +35,14 @@ td a{color:var(--accent2);text-decoration:none}td a:hover{text-decoration:underl
 .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.72rem;font-weight:500}
 .tag-yes{background:rgba(0,184,148,.15);color:var(--green)}
 .tag-no{background:rgba(139,143,163,.1);color:var(--dim)}
+.tag-ok{background:rgba(0,184,148,.15);color:var(--green)}
+.tag-err{background:rgba(225,112,85,.15);color:var(--red)}
+.tag-warn{background:rgba(253,203,110,.15);color:var(--yellow)}
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;padding:16px 24px}
 .stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
 .stat-card h3{font-size:.9rem;margin-bottom:12px;color:var(--accent2)}
 .stat-table{width:100%;font-size:.78rem}
-.stat-table th{background:none;padding:6px 8px;border-bottom:1px solid var(--border)}
+.stat-table th{background:none;padding:6px 8px;border-bottom:1px solid var(--border);cursor:default}
 .stat-table td{padding:6px 8px;border-bottom:1px solid rgba(42,45,58,.5)}
 .stat-table tr:last-child td{border-bottom:none}
 .num{font-variant-numeric:tabular-nums}
@@ -46,6 +50,17 @@ td a{color:var(--accent2);text-decoration:none}td a:hover{text-decoration:underl
 .spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin-right:12px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .export-wrap{padding:12px 24px;display:flex;gap:10px;flex-wrap:wrap}
+.log-wrap{padding:16px 24px}
+.log-entry{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:8px;font-size:.82rem;display:flex;gap:12px;align-items:flex-start}
+.log-entry .log-icon{font-size:1.1rem;flex-shrink:0;margin-top:1px}
+.log-entry .log-body{flex:1}
+.log-entry .log-title{font-weight:600;margin-bottom:2px}
+.log-entry .log-detail{color:var(--dim);font-size:.78rem}
+.log-entry .log-time{color:var(--dim);font-size:.72rem;flex-shrink:0}
+.log-summary{display:flex;gap:20px;padding:16px 24px;flex-wrap:wrap}
+.log-summary-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 20px;text-align:center}
+.log-summary-item .num{font-size:1.5rem;font-weight:700}
+.log-summary-item .label{font-size:.75rem;color:var(--dim);margin-top:2px}
 </style>
 </head>
 <body>
@@ -53,8 +68,9 @@ td a{color:var(--accent2);text-decoration:none}td a:hover{text-decoration:underl
 <div class="header">
   <h1>📊 Monthly Files</h1>
   <div class="tabs">
-    <button class="tab active" onclick="showView('articles')">Articles</button>
-    <button class="tab" onclick="showView('stats')">Stats</button>
+    <button class="tab active" data-view="articles" onclick="showView('articles',this)">Articles</button>
+    <button class="tab" data-view="stats" onclick="showView('stats',this)">Stats</button>
+    <button class="tab" data-view="status" onclick="showView('status',this)">Status <span class="badge" id="err-badge" style="display:none">0</span></button>
   </div>
 </div>
 
@@ -76,16 +92,16 @@ td a{color:var(--accent2);text-decoration:none}td a:hover{text-decoration:underl
   <div class="table-wrap">
     <table id="main-table">
       <thead><tr>
-        <th onclick="sortBy('site')">Site <span class="arrow"></span></th>
-        <th onclick="sortBy('date')">Date <span class="arrow"></span></th>
-        <th onclick="sortBy('title')">Title <span class="arrow"></span></th>
-        <th onclick="sortBy('titleEN')">Title EN <span class="arrow"></span></th>
-        <th onclick="sortBy('category')">Category <span class="arrow"></span></th>
-        <th onclick="sortBy('writer')">Writer <span class="arrow"></span></th>
-        <th onclick="sortBy('sessions')">Sessions <span class="arrow"></span></th>
+        <th onclick="sortBy('site')">Site</th>
+        <th onclick="sortBy('date')">Date</th>
+        <th onclick="sortBy('title')">Title</th>
+        <th onclick="sortBy('titleEN')">Title EN</th>
+        <th onclick="sortBy('category')">Category</th>
+        <th onclick="sortBy('writer')">Writer</th>
+        <th onclick="sortBy('sessions')">Sessions</th>
         <th>URL</th>
-        <th onclick="sortBy('ai')">AI <span class="arrow"></span></th>
-        <th onclick="sortBy('exclusive')">Exclusive <span class="arrow"></span></th>
+        <th onclick="sortBy('ai')">AI</th>
+        <th onclick="sortBy('exclusive')">Exclusive</th>
       </tr></thead>
       <tbody id="tbody"></tbody>
     </table>
@@ -99,6 +115,11 @@ td a{color:var(--accent2);text-decoration:none}td a:hover{text-decoration:underl
   <div class="stats-grid" id="stats-grid"></div>
 </div>
 
+<div id="status-view" style="display:none">
+  <div class="log-summary" id="log-summary"></div>
+  <div class="log-wrap" id="log-wrap"></div>
+</div>
+
 <script>
 // ── CONFIG ──
 const SOURCES = [
@@ -110,7 +131,6 @@ const SOURCES = [
   { id:'1iAShwI2K5V8uTWZ-5gvUiCkUVaNkQF07Ef4fQbcNFiM', tabs:['TMEdito','AFEdito'] },
 ];
 
-// Column name candidates for each field (order = priority)
 const FIELD_MAP = {
   site:     ['Site'],
   title:    ['Title','Corrección Andrea','Título'],
@@ -123,23 +143,21 @@ const FIELD_MAP = {
   ai:       ['AI?','AI'],
 };
 
-// Exclusive keywords (multi-language)
 const EXCL_RE = /\bexclu(?:sif|sive|sivo|siva|sivité|sividad)?\b|\besclusiv[oae]\b|\bэксклюзив\w*/i;
 
 // ── STATE ──
 let allRows = [];
 let sortCol = 'date', sortDir = -1;
+let logs = []; // {time, tab, sheetId, status:'ok'|'error'|'warn', msg, rows, headers, duration}
 let loadedCount = 0, totalTabs = 0;
 
 // ── HELPERS ──
 function resolve(row, field) {
   const candidates = FIELD_MAP[field] || [];
   for (const c of candidates) {
-    // Try exact match first
     if (row[c] !== undefined && row[c] !== null && String(row[c]).trim() !== '' && String(row[c]).trim() !== '#N/A' && String(row[c]).trim() !== '#REF!') {
       return String(row[c]).trim();
     }
-    // Try normalized (remove newlines)
     for (const k of Object.keys(row)) {
       if (k.replace(/\n/g,' ').trim().toLowerCase() === c.toLowerCase()) {
         const v = String(row[k]).trim();
@@ -153,7 +171,6 @@ function resolve(row, field) {
 function parseDate(raw) {
   if (!raw) return null;
   raw = raw.trim();
-  // "01/04/2026" or "01/04" or "01/04/26"
   const parts = raw.split('/');
   if (parts.length === 3) {
     let [d, m, y] = parts;
@@ -167,31 +184,29 @@ function parseDate(raw) {
   return isNaN(d) ? null : d;
 }
 
-function fmtDate(d) {
-  if (!d || isNaN(d)) return '';
-  return d.toISOString().slice(0, 10);
-}
-
-function monthKey(d) {
-  if (!d || isNaN(d)) return '';
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-}
-
-function isExclusive(title, url, cat) {
-  return EXCL_RE.test(title) || EXCL_RE.test(url) || EXCL_RE.test(cat);
-}
-
+function fmtDate(d) { return (!d || isNaN(d)) ? '' : d.toISOString().slice(0,10); }
+function monthKey(d) { return (!d || isNaN(d)) ? '' : d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function isExclusive(t,u,c) { return EXCL_RE.test(t)||EXCL_RE.test(u)||EXCL_RE.test(c); }
 function normalizeAI(v) {
   if (!v) return '';
   v = v.toUpperCase().trim();
-  if (v === 'TRUE' || v === 'YES' || v === 'OUI') return 'Yes';
-  if (v === 'FALSE' || v === 'NO' || v === 'NON') return 'No';
+  if (v==='TRUE'||v==='YES'||v==='OUI') return 'Yes';
+  if (v==='FALSE'||v==='NO'||v==='NON') return 'No';
   return '';
 }
+function parseNum(v) { return v ? (parseInt(String(v).replace(/[^0-9]/g,''),10)||0) : 0; }
 
-function parseNum(v) {
-  if (!v) return 0;
-  return parseInt(String(v).replace(/[^0-9]/g, ''), 10) || 0;
+// ── LOGGING ──
+function log(tab, sheetId, status, msg, extra={}) {
+  logs.push({ time: new Date().toLocaleTimeString(), tab, sheetId, status, msg, ...extra });
+  updateBadge();
+}
+
+function updateBadge() {
+  const errs = logs.filter(l => l.status === 'error').length;
+  const badge = document.getElementById('err-badge');
+  if (errs > 0) { badge.textContent = errs; badge.style.display = ''; }
+  else badge.style.display = 'none';
 }
 
 // ── FETCH ──
@@ -200,19 +215,54 @@ function sheetURL(id, tab) {
 }
 
 async function fetchTab(id, tab) {
+  const t0 = performance.now();
   try {
     const res = await fetch(sheetURL(id, tab));
+    const dur = Math.round(performance.now() - t0);
+    if (!res.ok) {
+      log(tab, id, 'error', `HTTP ${res.status} ${res.statusText}`, { duration: dur });
+      return [];
+    }
     const text = await res.text();
-    const parsed = Papa.parse(text, { header: true, skipEmptyLines: true, dynamicTyping: false });
+    const parsed = Papa.parse(text, { header:true, skipEmptyLines:true, dynamicTyping:false });
+
+    if (parsed.errors.length > 0) {
+      log(tab, id, 'warn', `Parsed with ${parsed.errors.length} warning(s): ${parsed.errors[0].message}`, {
+        rows: parsed.data.length, headers: Object.keys(parsed.data[0]||{}), duration: dur
+      });
+    }
+
+    // Detect if redirect happened (all rows have same Site as another tab)
+    const headers = Object.keys(parsed.data[0] || {});
+    const validRows = parsed.data.filter(r => {
+      const t = resolve(r,'title'), s = resolve(r,'site');
+      return t && s && t !== 'Housekeeping' && (r['Year']||'') !== '1899';
+    });
+
+    if (validRows.length === 0) {
+      log(tab, id, 'error', `0 valid articles found — tab may not exist or is empty`, {
+        rows: 0, headers, duration: dur
+      });
+      return [];
+    }
+
+    const hasAI = headers.some(h => h.replace(/\n/g,' ').trim().match(/^AI\??$/i));
+
+    log(tab, id, 'ok',
+      `${validRows.length} articles loaded` + (hasAI ? '' : ' — no AI? column detected'),
+      { rows: validRows.length, headers, duration: dur, hasAI }
+    );
+
     return parsed.data;
   } catch (e) {
-    console.error(`Failed: ${tab}`, e);
+    const dur = Math.round(performance.now() - t0);
+    log(tab, id, 'error', `Fetch failed: ${e.message}`, { duration: dur });
     return [];
   }
 }
 
 async function loadAll() {
-  totalTabs = SOURCES.reduce((s, src) => s + src.tabs.length, 0);
+  totalTabs = SOURCES.reduce((s,src) => s+src.tabs.length, 0);
   const promises = [];
 
   for (const src of SOURCES) {
@@ -220,33 +270,26 @@ async function loadAll() {
       promises.push(
         fetchTab(src.id, tab).then(rows => {
           for (const row of rows) {
-            const title = resolve(row, 'title');
-            const site = resolve(row, 'site');
+            const title = resolve(row,'title');
+            const site = resolve(row,'site');
             if (!title || !site) continue;
             if (title === 'Housekeeping') continue;
-
-            const rawDate = resolve(row, 'date');
-            const d = parseDate(rawDate);
-            // Skip placeholder rows (year 1899 or no valid date)
-            const yearCol = row['Year'] || '';
+            const yearCol = row['Year']||'';
             if (yearCol === '1899') continue;
 
-            const urlVal = resolve(row, 'url');
-            const catVal = resolve(row, 'category');
+            const rawDate = resolve(row,'date');
+            const d = parseDate(rawDate);
+            const urlVal = resolve(row,'url');
+            const catVal = resolve(row,'category');
 
             allRows.push({
-              site,
-              date: d,
-              dateStr: fmtDate(d),
-              month: monthKey(d),
-              title,
-              titleEN: resolve(row, 'titleEN'),
-              category: catVal,
-              writer: resolve(row, 'writer'),
-              sessions: parseNum(resolve(row, 'sessions')),
-              url: urlVal,
-              ai: normalizeAI(resolve(row, 'ai')),
-              exclusive: isExclusive(title, urlVal, catVal) ? 'Yes' : 'No',
+              site, date:d, dateStr:fmtDate(d), month:monthKey(d),
+              title, titleEN:resolve(row,'titleEN'),
+              category:catVal, writer:resolve(row,'writer'),
+              sessions:parseNum(resolve(row,'sessions')),
+              url:urlVal, ai:normalizeAI(resolve(row,'ai')),
+              exclusive:isExclusive(title,urlVal,catVal)?'Yes':'No',
+              _tab: tab,
             });
           }
           loadedCount++;
@@ -257,19 +300,40 @@ async function loadAll() {
   }
 
   await Promise.all(promises);
+  detectDuplicateTabs();
   buildFilters();
   renderTable();
   document.getElementById('status').textContent = `${allRows.length} articles loaded from ${totalTabs} tabs`;
 }
 
+function detectDuplicateTabs() {
+  // Warn if two tabs returned identical data (redirect issue)
+  const tabSigs = {};
+  for (const src of SOURCES) {
+    for (const tab of src.tabs) {
+      const tabRows = allRows.filter(r => r._tab === tab);
+      if (tabRows.length === 0) continue;
+      const sig = tabRows.slice(0,5).map(r => r.title).join('|');
+      if (tabSigs[sig] && tabSigs[sig] !== tab) {
+        log(tab, src.id, 'warn',
+          `Data looks identical to "${tabSigs[sig]}" — possible redirect (wrong tab name?)`,
+          { rows: tabRows.length }
+        );
+      } else {
+        tabSigs[sig] = tab;
+      }
+    }
+  }
+}
+
 // ── FILTERS ──
 function buildFilters() {
-  const sites = [...new Set(allRows.map(r => r.site))].sort();
-  const months = [...new Set(allRows.map(r => r.month).filter(Boolean))].sort();
-  const selSite = document.getElementById('filter-site');
-  const selMonth = document.getElementById('filter-month');
-  sites.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; selSite.appendChild(o); });
-  months.forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; selMonth.appendChild(o); });
+  const sites = [...new Set(allRows.map(r=>r.site))].sort();
+  const months = [...new Set(allRows.map(r=>r.month).filter(Boolean))].sort();
+  const selS = document.getElementById('filter-site');
+  const selM = document.getElementById('filter-month');
+  sites.forEach(s => { const o=document.createElement('option'); o.value=s; o.textContent=s; selS.appendChild(o); });
+  months.forEach(m => { const o=document.createElement('option'); o.value=m; o.textContent=m; selM.appendChild(o); });
 }
 
 function getFiltered() {
@@ -278,16 +342,15 @@ function getFiltered() {
   const month = document.getElementById('filter-month').value;
   const ai = document.getElementById('filter-ai').value;
   const excl = document.getElementById('filter-excl').value;
-
   return allRows.filter(r => {
-    if (site && r.site !== site) return false;
-    if (month && r.month !== month) return false;
-    if (ai === 'yes' && r.ai !== 'Yes') return false;
-    if (ai === 'no' && r.ai !== 'No' && r.ai !== '') return false;
-    if (excl === 'yes' && r.exclusive !== 'Yes') return false;
-    if (excl === 'no' && r.exclusive !== 'No') return false;
+    if (site && r.site!==site) return false;
+    if (month && r.month!==month) return false;
+    if (ai==='yes' && r.ai!=='Yes') return false;
+    if (ai==='no' && r.ai!=='No' && r.ai!=='') return false;
+    if (excl==='yes' && r.exclusive!=='Yes') return false;
+    if (excl==='no' && r.exclusive!=='No') return false;
     if (q) {
-      const hay = (r.title + ' ' + r.titleEN + ' ' + r.url + ' ' + r.writer + ' ' + r.site + ' ' + r.category).toLowerCase();
+      const hay = (r.title+' '+r.titleEN+' '+r.url+' '+r.writer+' '+r.site+' '+r.category).toLowerCase();
       if (!hay.includes(q)) return false;
     }
     return true;
@@ -296,27 +359,21 @@ function getFiltered() {
 
 // ── SORT ──
 function sortBy(col) {
-  if (sortCol === col) sortDir *= -1;
-  else { sortCol = col; sortDir = 1; }
+  if (sortCol===col) sortDir*=-1; else { sortCol=col; sortDir=1; }
   renderTable();
 }
-
-function compare(a, b) {
-  let va = a[sortCol], vb = b[sortCol];
-  if (sortCol === 'date') { va = a.date || new Date(0); vb = b.date || new Date(0); }
-  if (sortCol === 'sessions') { va = a.sessions; vb = b.sessions; }
-  if (va < vb) return -1 * sortDir;
-  if (va > vb) return 1 * sortDir;
-  return 0;
+function compare(a,b) {
+  let va=a[sortCol], vb=b[sortCol];
+  if (sortCol==='date') { va=a.date||new Date(0); vb=b.date||new Date(0); }
+  if (sortCol==='sessions') { va=a.sessions; vb=b.sessions; }
+  if (va<vb) return -1*sortDir; if (va>vb) return sortDir; return 0;
 }
 
 // ── RENDER TABLE ──
 function renderTable() {
   const rows = getFiltered().sort(compare);
-  const tbody = document.getElementById('tbody');
-  // Render max 2000 for performance
-  const show = rows.slice(0, 2000);
-  tbody.innerHTML = show.map(r => `<tr>
+  const show = rows.slice(0,2000);
+  document.getElementById('tbody').innerHTML = show.map(r => `<tr>
     <td>${esc(r.site)}</td>
     <td class="num">${esc(r.dateStr)}</td>
     <td title="${esc(r.title)}">${esc(r.title)}</td>
@@ -324,99 +381,122 @@ function renderTable() {
     <td>${esc(r.category)}</td>
     <td>${esc(r.writer)}</td>
     <td class="num">${r.sessions.toLocaleString()}</td>
-    <td>${r.url ? `<a href="${esc(r.url)}" target="_blank">🔗 link</a>` : ''}</td>
+    <td>${r.url?`<a href="${esc(r.url)}" target="_blank">🔗</a>`:''}</td>
     <td>${tag(r.ai)}</td>
     <td>${tag(r.exclusive)}</td>
   </tr>`).join('');
-
-  document.getElementById('status').textContent = `${rows.length} articles${rows.length > 2000 ? ' (showing first 2000)' : ''} — ${allRows.length} total`;
+  document.getElementById('status').textContent = `${rows.length} articles${rows.length>2000?' (showing 2000)':''} — ${allRows.length} total`;
 }
 
-function esc(s) { return s ? s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
+function esc(s) { return s?s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):''; }
 function tag(v) {
-  if (v === 'Yes') return '<span class="tag tag-yes">Yes</span>';
-  if (v === 'No') return '<span class="tag tag-no">No</span>';
+  if (v==='Yes') return '<span class="tag tag-yes">Yes</span>';
+  if (v==='No') return '<span class="tag tag-no">No</span>';
   return '<span class="tag tag-no">—</span>';
 }
 
 // ── STATS ──
 function renderStats() {
   const grid = document.getElementById('stats-grid');
-  const sites = [...new Set(allRows.map(r => r.site))].sort();
+  const sites = [...new Set(allRows.map(r=>r.site))].sort();
   let html = '';
-
   for (const site of sites) {
-    const siteRows = allRows.filter(r => r.site === site);
-    const months = [...new Set(siteRows.map(r => r.month).filter(Boolean))].sort();
+    const siteRows = allRows.filter(r=>r.site===site);
+    const months = [...new Set(siteRows.map(r=>r.month).filter(Boolean))].sort();
     html += `<div class="stat-card"><h3>${esc(site)}</h3><table class="stat-table">
       <thead><tr><th>Month</th><th>All</th><th>Exclusive</th><th>AI</th></tr></thead><tbody>`;
-    let tAll = 0, tExcl = 0, tAI = 0;
+    let tA=0,tE=0,tI=0;
     for (const m of months) {
-      const mRows = siteRows.filter(r => r.month === m);
-      const nAll = mRows.length;
-      const nExcl = mRows.filter(r => r.exclusive === 'Yes').length;
-      const nAI = mRows.filter(r => r.ai === 'Yes').length;
-      tAll += nAll; tExcl += nExcl; tAI += nAI;
-      html += `<tr><td>${m}</td><td class="num">${nAll}</td><td class="num">${nExcl}</td><td class="num">${nAI}</td></tr>`;
+      const mR = siteRows.filter(r=>r.month===m);
+      const nA=mR.length, nE=mR.filter(r=>r.exclusive==='Yes').length, nI=mR.filter(r=>r.ai==='Yes').length;
+      tA+=nA; tE+=nE; tI+=nI;
+      html += `<tr><td>${m}</td><td class="num">${nA}</td><td class="num">${nE}</td><td class="num">${nI}</td></tr>`;
     }
-    html += `<tr style="font-weight:600;border-top:2px solid var(--border)"><td>Total</td><td class="num">${tAll}</td><td class="num">${tExcl}</td><td class="num">${tAI}</td></tr>`;
+    html += `<tr style="font-weight:600;border-top:2px solid var(--border)"><td>Total</td><td class="num">${tA}</td><td class="num">${tE}</td><td class="num">${tI}</td></tr>`;
     html += `</tbody></table></div>`;
   }
   grid.innerHTML = html;
 }
 
+// ── STATUS / LOGS ──
+function renderStatus() {
+  const ok = logs.filter(l=>l.status==='ok').length;
+  const warn = logs.filter(l=>l.status==='warn').length;
+  const err = logs.filter(l=>l.status==='error').length;
+  const totalRows = logs.reduce((s,l)=>s+(l.rows||0),0);
+
+  document.getElementById('log-summary').innerHTML = `
+    <div class="log-summary-item"><div class="num" style="color:var(--green)">${ok}</div><div class="label">OK</div></div>
+    <div class="log-summary-item"><div class="num" style="color:var(--yellow)">${warn}</div><div class="label">Warnings</div></div>
+    <div class="log-summary-item"><div class="num" style="color:var(--red)">${err}</div><div class="label">Errors</div></div>
+    <div class="log-summary-item"><div class="num">${totalRows}</div><div class="label">Total rows</div></div>
+    <div class="log-summary-item"><div class="num">${totalTabs}</div><div class="label">Tabs</div></div>
+  `;
+
+  const icons = { ok:'✅', warn:'⚠️', error:'❌' };
+  const tagCls = { ok:'tag-ok', warn:'tag-warn', error:'tag-err' };
+
+  document.getElementById('log-wrap').innerHTML = logs
+    .sort((a,b) => { const ord={error:0,warn:1,ok:2}; return ord[a.status]-ord[b.status]; })
+    .map(l => `
+      <div class="log-entry">
+        <div class="log-icon">${icons[l.status]}</div>
+        <div class="log-body">
+          <div class="log-title">${esc(l.tab)} <span class="tag ${tagCls[l.status]}">${l.status}</span></div>
+          <div class="log-detail">${esc(l.msg)}</div>
+          ${l.duration ? `<div class="log-detail">⏱ ${l.duration}ms${l.rows!==undefined?' · '+l.rows+' rows':''}</div>` : ''}
+          ${l.headers ? `<div class="log-detail" style="word-break:break-all">Headers: ${l.headers.filter(h=>h).map(h=>esc(h)).join(', ')}</div>` : ''}
+        </div>
+        <div class="log-time">${l.time}</div>
+      </div>
+    `).join('');
+}
+
 // ── VIEWS ──
-function showView(v) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  event.target.classList.add('active');
-  document.getElementById('articles-view').style.display = v === 'articles' ? '' : 'none';
-  document.getElementById('stats-view').style.display = v === 'stats' ? '' : 'none';
-  if (v === 'stats') renderStats();
+function showView(v, el) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('articles-view').style.display = v==='articles'?'':'none';
+  document.getElementById('stats-view').style.display = v==='stats'?'':'none';
+  document.getElementById('status-view').style.display = v==='status'?'':'none';
+  if (v==='stats') renderStats();
+  if (v==='status') renderStatus();
 }
 
 // ── EXPORT CSV ──
 function exportCSV(type) {
   let data, filename;
-
-  if (type === 'all') {
+  if (type==='all') {
     data = getFiltered().map(r => ({
-      Site: r.site, Date: r.dateStr, 'Title': r.title, 'Title EN': r.titleEN,
-      Category: r.category, Writer: r.writer, Sessions: r.sessions,
-      URL: r.url, AI: r.ai, Exclusive: r.exclusive,
+      Site:r.site, Date:r.dateStr, Title:r.title, 'Title EN':r.titleEN,
+      Category:r.category, Writer:r.writer, Sessions:r.sessions,
+      URL:r.url, AI:r.ai, Exclusive:r.exclusive,
     }));
     filename = 'monthlyfiles_all.csv';
-  }
-  else if (type === 'ai') {
-    // AI articles grouped by site and month
-    const aiRows = allRows.filter(r => r.ai === 'Yes');
-    data = aiRows.map(r => ({
-      Site: r.site, Month: r.month, Date: r.dateStr, Title: r.title,
-      Category: r.category, Writer: r.writer, URL: r.url,
+  } else if (type==='ai') {
+    data = allRows.filter(r=>r.ai==='Yes').map(r => ({
+      Site:r.site, Month:r.month, Date:r.dateStr, Title:r.title,
+      Category:r.category, Writer:r.writer, URL:r.url,
     }));
-    data.sort((a, b) => a.Site.localeCompare(b.Site) || a.Month.localeCompare(b.Month));
+    data.sort((a,b) => a.Site.localeCompare(b.Site)||a.Month.localeCompare(b.Month));
     filename = 'monthlyfiles_AI_articles.csv';
-  }
-  else if (type === 'stats') {
+  } else if (type==='stats') {
     data = [];
-    const sites = [...new Set(allRows.map(r => r.site))].sort();
+    const sites = [...new Set(allRows.map(r=>r.site))].sort();
     for (const site of sites) {
-      const siteRows = allRows.filter(r => r.site === site);
-      const months = [...new Set(siteRows.map(r => r.month).filter(Boolean))].sort();
+      const sR = allRows.filter(r=>r.site===site);
+      const months = [...new Set(sR.map(r=>r.month).filter(Boolean))].sort();
       for (const m of months) {
-        const mRows = siteRows.filter(r => r.month === m);
-        data.push({
-          Site: site, Month: m,
-          'Total Articles': mRows.length,
-          'Exclusive Articles': mRows.filter(r => r.exclusive === 'Yes').length,
-          'AI Articles': mRows.filter(r => r.ai === 'Yes').length,
-        });
+        const mR = sR.filter(r=>r.month===m);
+        data.push({ Site:site, Month:m, 'Total Articles':mR.length,
+          'Exclusive Articles':mR.filter(r=>r.exclusive==='Yes').length,
+          'AI Articles':mR.filter(r=>r.ai==='Yes').length });
       }
     }
     filename = 'monthlyfiles_stats.csv';
   }
-
   const csv = Papa.unparse(data);
-  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = filename;
