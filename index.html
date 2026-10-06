@@ -175,12 +175,12 @@ td a{color:var(--accent2);text-decoration:none}td a:hover{text-decoration:underl
 <script>
 const PAGE_SIZE = 500;
 const SOURCES=[
-  {id:'10x-NuFu-wC27T-FjR3xz4Z5gaCqo3HLYJEgOMoq9CLw',tabs:['LBEdito','UDEEdito','TRIVELAEdito']},
-  {id:'1DnZjtM_M7WrRSdFdmVdhv7WoQNcwXuXWPrCOe2jC-S0',tabs:['AFNGEdito','AFZAEdito','SNEdito']},
-  {id:'1Q6JhvtaJk5zpjxZVVvxRhqE2fnMnuZDwwY4CHuI2RSo',tabs:['VRINGEEdito','FPEdito','LubEdito']},
-  {id:'1F83thLimoSb6EUuRXBilsbwyjwUwRQQhSONNo8R1G8w',tabs:['SBEdito','CDAEdito','AALEdito']},
-  {id:'1RvK17qIyb5tRVp_VZhUG61KDmqMW9n44CKGlrNn4NGY',tabs:['SMEdito','FGGEdito','FWEdito','MFTEdito']},
-  {id:'1iAShwI2K5V8uTWZ-5gvUiCkUVaNkQF07Ef4fQbcNFiM',tabs:['TMEdito','AFEdito']},
+  {pub:'2PACX-1vQkXWzt8XGP-qwFuZh2AIy0B12_i_hgk0EHrjPx24laKu9q-7OBQRrw6gxJVWx2R0YGfVxkxbhxl0Vx',tabs:['LBEdito','UDEEdito','TRIVELAEdito']},
+  {pub:'2PACX-1vSQ0UOiNw2G3q-t03KSz7cOrcplln2AGvktWT8vK5a9fIHfnZJsh_-V6N8gw2W9vciOL89c6CUyO0Vb',tabs:['AFNGEdito','AFZAEdito','SNEdito']},
+  {pub:'2PACX-1vQ80F4E82hGSgQGaON4lbWaobU6HkCCKL5zTblIMg1hhLMGrfQVjp419V4qtATGn-tIAt4rdyCCSjoo',tabs:['VRINGEEdito','FPEdito','LubEdito']},
+  {pub:'2PACX-1vRoCtOlph8KETjKjVdgc6MZSziJG867uMVSXFBJP9WCGgO896CE3bwT8SoN7MaFLt1PaKMFWc57MIhj',tabs:['SBEdito','CDAEdito','AALEdito']},
+  {pub:'2PACX-1vTr22t7uXdWmGnLAHUU0yXCLb_qXx2iGf1aH2q9GFAwP98aT56zz4wHrxSpW_Aw4bd6zybQyifBu5Mi',tabs:['SMEdito','FGGEdito','FWEdito','MFTEdito']},
+  {pub:'2PACX-1vTwazRdIl4h5h01vn_eULd55C-JOetG3N8CPVj_UmD8ATctSNawRVIMySyqLXpg2dDu_B6Mm5aLYhdh',tabs:['TMEdito','AFEdito']},
 ];
 const FM={site:['Site'],title:['Title','Corrección Andrea','Título'],titleEN:['Title (EN)','Title EN'],
   date:['Publication date','Publication Date','Date','Fecha'],category:['Category','Catégorie','Categoría'],
@@ -238,9 +238,9 @@ async function fetchTab(sid,tab){
 }
 
 async function loadAll(){
-  const tabs=SOURCES.flatMap(s=>s.tabs.map(t=>({id:s.id,tab:t})));
+  const tabs=SOURCES.flatMap(s=>s.tabs.map(t=>({pub:s.pub,tab:t})));
   totalN=tabs.length;
-  await Promise.all(tabs.map(({id,tab})=>fetchTab(id,tab)));
+  await Promise.all(tabs.map(({pub,tab})=>fetchTab(pub,tab)));
   document.getElementById('progress').style.width='100%';
   document.getElementById('global-status').textContent=`✅ ${allRows.length.toLocaleString()} articles from ${totalN} tabs`;
   buildFilters();
