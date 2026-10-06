@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monthly Files</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f1117;--card:#1a1d27;--border:#2a2d3a;--text:#e2e4eb;--dim:#8b8fa3;--accent:#6c5ce7;--accent2:#a29bfe;--green:#00b894;--red:#e17055;--yellow:#fdcb6e}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.header h1{font-size:1.3rem;font-weight:600;color:var(--accent2)}
+.tabs{display:flex;gap:4px;background:var(--card);border-radius:8px;padding:3px}
+.tab{padding:8px 18px;border-radius:6px;cursor:pointer;font-size:.85rem;color:var(--dim);transition:.2s;border:none;background:none}
+.tab.active{background:var(--accent);color:#fff}
+.tab:hover:not(.active){color:var(--text)}
+.controls{padding:12px 24px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--border)}
+.controls select,.controls input{background:var(--card);border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:6px;font-size:.82rem}
+.controls input{width:220px}
+.controls select{min-width:120px}
+.btn{padding:7px 16px;border-radius:6px;border:none;cursor:pointer;font-size:.82rem;font-weight:500;transition:.2s}
+.btn-accent{background:var(--accent);color:#fff}.btn-accent:hover{background:var(--accent2)}
+.btn-outline{background:none;border:1px solid var(--border);color:var(--dim)}.btn-outline:hover{border-color:var(--accent);color:var(--accent2)}
+.status{padding:10px 24px;font-size:.8rem;color:var(--dim)}
+.table-wrap{overflow-x:auto;padding:0 24px 24px}
+table{width:100%;border-collapse:collapse;font-size:.8rem}
+th{background:var(--card);position:sticky;top:0;padding:10px 12px;text-align:left;color:var(--dim);font-weight:500;border-bottom:2px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}
+th:hover{color:var(--accent2)}
+th .arrow{margin-left:4px;font-size:.65rem}
+td{padding:8px 12px;border-bottom:1px solid var(--border);max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+tr:hover td{background:rgba(108,92,231,.06)}
+td a{color:var(--accent2);text-decoration:none}td a:hover{text-decoration:underline}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.72rem;font-weight:500}
+.tag-yes{background:rgba(0,184,148,.15);color:var(--green)}
+.tag-no{background:rgba(139,143,163,.1);color:var(--dim)}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;padding:16px 24px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
+.stat-card h3{font-size:.9rem;margin-bottom:12px;color:var(--accent2)}
+.stat-table{width:100%;font-size:.78rem}
+.stat-table th{background:none;padding:6px 8px;border-bottom:1px solid var(--border)}
+.stat-table td{padding:6px 8px;border-bottom:1px solid rgba(42,45,58,.5)}
+.stat-table tr:last-child td{border-bottom:none}
+.num{font-variant-numeric:tabular-nums}
+.loading{display:flex;align-items:center;justify-content:center;height:300px;color:var(--dim)}
+.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin-right:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.export-wrap{padding:12px 24px;display:flex;gap:10px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📊 Monthly Files</h1>
+  <div class="tabs">
+    <button class="tab active" onclick="showView('articles')">Articles</button>
+    <button class="tab" onclick="showView('stats')">Stats</button>
+  </div>
+</div>
+
+<div id="articles-view">
+  <div class="controls">
+    <input type="text" id="search" placeholder="Search title, URL, writer..." oninput="renderTable()">
+    <select id="filter-site" onchange="renderTable()"><option value="">All sites</option></select>
+    <select id="filter-month" onchange="renderTable()"><option value="">All months</option></select>
+    <select id="filter-ai" onchange="renderTable()">
+      <option value="">AI: All</option><option value="yes">AI: Yes</option><option value="no">AI: No</option>
+    </select>
+    <select id="filter-excl" onchange="renderTable()">
+      <option value="">Exclusive: All</option><option value="yes">Exclusive: Yes</option><option value="no">Exclusive: No</option>
+    </select>
+    <button class="btn btn-outline" onclick="exportCSV('all')">⬇ CSV All</button>
+    <button class="btn btn-accent" onclick="exportCSV('ai')">⬇ CSV AI by site/month</button>
+  </div>
+  <div class="status" id="status">Loading sheets...</div>
+  <div class="table-wrap">
+    <table id="main-table">
+      <thead><tr>
+        <th onclick="sortBy('site')">Site <span class="arrow"></span></th>
+        <th onclick="sortBy('date')">Date <span class="arrow"></span></th>
+        <th onclick="sortBy('title')">Title <span class="arrow"></span></th>
+        <th onclick="sortBy('titleEN')">Title EN <span class="arrow"></span></th>
+        <th onclick="sortBy('category')">Category <span class="arrow"></span></th>
+        <th onclick="sortBy('writer')">Writer <span class="arrow"></span></th>
+        <th onclick="sortBy('sessions')">Sessions <span class="arrow"></span></th>
+        <th>URL</th>
+        <th onclick="sortBy('ai')">AI <span class="arrow"></span></th>
+        <th onclick="sortBy('exclusive')">Exclusive <span class="arrow"></span></th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="stats-view" style="display:none">
+  <div class="export-wrap">
+    <button class="btn btn-outline" onclick="exportCSV('stats')">⬇ CSV Stats</button>
+  </div>
+  <div class="stats-grid" id="stats-grid"></div>
+</div>
+
+<script>
+// ── CONFIG ──
+const SOURCES = [
+  { id:'10x-NuFu-wC27T-FjR3xz4Z5gaCqo3HLYJEgOMoq9CLw', tabs:['LBEdito','UDEEdito','TRIVELAEdito'] },
+  { id:'1DnZjtM_M7WrRSdFdmVdhv7WoQNcwXuXWPrCOe2jC-S0', tabs:['AFNGEdito','AFZAEdito','SNEdito'] },
+  { id:'1Q6JhvtaJk5zpjxZVVvxRhqE2fnMnuZDwwY4CHuI2RSo', tabs:['VRINGEEdito','FPEdito','LubEdito'] },
+  { id:'1F83thLimoSb6EUuRXBilsbwyjwUwRQQhSONNo8R1G8w', tabs:['SBEdito','CDAEdito','AALEdito'] },
+  { id:'1RvK17qIyb5tRVp_VZhUG61KDmqMW9n44CKGlrNn4NGY', tabs:['SMEdito','FGGEdito','FWEdito','MFTEdito'] },
+  { id:'1iAShwI2K5V8uTWZ-5gvUiCkUVaNkQF07Ef4fQbcNFiM', tabs:['TMEdito','AFEdito'] },
+];
+
+// Column name candidates for each field (order = priority)
+const FIELD_MAP = {
+  site:     ['Site'],
+  title:    ['Title','Corrección Andrea','Título'],
+  titleEN:  ['Title (EN)','Title EN'],
+  date:     ['Publication date','Publication Date','Date'],
+  category: ['Category','Catégorie'],
+  writer:   ['Writer','Editor','Editeur','Éditeur'],
+  sessions: ['Sessions'],
+  url:      ['Published URL','URL of the content','URL','Slug (or existing URL to update)'],
+  ai:       ['AI?','AI'],
+};
+
+// Exclusive keywords (multi-language)
+const EXCL_RE = /\bexclu(?:sif|sive|sivo|siva|sivité|sividad)?\b|\besclusiv[oae]\b|\bэксклюзив\w*/i;
+
+// ── STATE ──
+let allRows = [];
+let sortCol = 'date', sortDir = -1;
+let loadedCount = 0, totalTabs = 0;
+
+// ── HELPERS ──
+function resolve(row, field) {
+  const candidates = FIELD_MAP[field] || [];
+  for (const c of candidates) {
+    // Try exact match first
+    if (row[c] !== undefined && row[c] !== null && String(row[c]).trim() !== '' && String(row[c]).trim() !== '#N/A' && String(row[c]).trim() !== '#REF!') {
+      return String(row[c]).trim();
+    }
+    // Try normalized (remove newlines)
+    for (const k of Object.keys(row)) {
+      if (k.replace(/\n/g,' ').trim().toLowerCase() === c.toLowerCase()) {
+        const v = String(row[k]).trim();
+        if (v && v !== '#N/A' && v !== '#REF!') return v;
+      }
+    }
+  }
+  return '';
+}
+
+function parseDate(raw) {
+  if (!raw) return null;
+  raw = raw.trim();
+  // "01/04/2026" or "01/04" or "01/04/26"
+  const parts = raw.split('/');
+  if (parts.length === 3) {
+    let [d, m, y] = parts;
+    if (y.length === 2) y = '20' + y;
+    return new Date(y, m - 1, d);
+  }
+  if (parts.length === 2) {
+    return new Date(2026, parts[1] - 1, parts[0]);
+  }
+  const d = new Date(raw);
+  return isNaN(d) ? null : d;
+}
+
+function fmtDate(d) {
+  if (!d || isNaN(d)) return '';
+  return d.toISOString().slice(0, 10);
+}
+
+function monthKey(d) {
+  if (!d || isNaN(d)) return '';
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
+function isExclusive(title, url, cat) {
+  return EXCL_RE.test(title) || EXCL_RE.test(url) || EXCL_RE.test(cat);
+}
+
+function normalizeAI(v) {
+  if (!v) return '';
+  v = v.toUpperCase().trim();
+  if (v === 'TRUE' || v === 'YES' || v === 'OUI') return 'Yes';
+  if (v === 'FALSE' || v === 'NO' || v === 'NON') return 'No';
+  return '';
+}
+
+function parseNum(v) {
+  if (!v) return 0;
+  return parseInt(String(v).replace(/[^0-9]/g, ''), 10) || 0;
+}
+
+// ── FETCH ──
+function sheetURL(id, tab) {
+  return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`;
+}
+
+async function fetchTab(id, tab) {
+  try {
+    const res = await fetch(sheetURL(id, tab));
+    const text = await res.text();
+    const parsed = Papa.parse(text, { header: true, skipEmptyLines: true, dynamicTyping: false });
+    return parsed.data;
+  } catch (e) {
+    console.error(`Failed: ${tab}`, e);
+    return [];
+  }
+}
+
+async function loadAll() {
+  totalTabs = SOURCES.reduce((s, src) => s + src.tabs.length, 0);
+  const promises = [];
+
+  for (const src of SOURCES) {
+    for (const tab of src.tabs) {
+      promises.push(
+        fetchTab(src.id, tab).then(rows => {
+          for (const row of rows) {
+            const title = resolve(row, 'title');
+            const site = resolve(row, 'site');
+            if (!title || !site) continue;
+            if (title === 'Housekeeping') continue;
+
+            const rawDate = resolve(row, 'date');
+            const d = parseDate(rawDate);
+            // Skip placeholder rows (year 1899 or no valid date)
+            const yearCol = row['Year'] || '';
+            if (yearCol === '1899') continue;
+
+            const urlVal = resolve(row, 'url');
+            const catVal = resolve(row, 'category');
+
+            allRows.push({
+              site,
+              date: d,
+              dateStr: fmtDate(d),
+              month: monthKey(d),
+              title,
+              titleEN: resolve(row, 'titleEN'),
+              category: catVal,
+              writer: resolve(row, 'writer'),
+              sessions: parseNum(resolve(row, 'sessions')),
+              url: urlVal,
+              ai: normalizeAI(resolve(row, 'ai')),
+              exclusive: isExclusive(title, urlVal, catVal) ? 'Yes' : 'No',
+            });
+          }
+          loadedCount++;
+          document.getElementById('status').textContent = `Loaded ${loadedCount}/${totalTabs} tabs (${allRows.length} articles)`;
+        })
+      );
+    }
+  }
+
+  await Promise.all(promises);
+  buildFilters();
+  renderTable();
+  document.getElementById('status').textContent = `${allRows.length} articles loaded from ${totalTabs} tabs`;
+}
+
+// ── FILTERS ──
+function buildFilters() {
+  const sites = [...new Set(allRows.map(r => r.site))].sort();
+  const months = [...new Set(allRows.map(r => r.month).filter(Boolean))].sort();
+  const selSite = document.getElementById('filter-site');
+  const selMonth = document.getElementById('filter-month');
+  sites.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; selSite.appendChild(o); });
+  months.forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; selMonth.appendChild(o); });
+}
+
+function getFiltered() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const site = document.getElementById('filter-site').value;
+  const month = document.getElementById('filter-month').value;
+  const ai = document.getElementById('filter-ai').value;
+  const excl = document.getElementById('filter-excl').value;
+
+  return allRows.filter(r => {
+    if (site && r.site !== site) return false;
+    if (month && r.month !== month) return false;
+    if (ai === 'yes' && r.ai !== 'Yes') return false;
+    if (ai === 'no' && r.ai !== 'No' && r.ai !== '') return false;
+    if (excl === 'yes' && r.exclusive !== 'Yes') return false;
+    if (excl === 'no' && r.exclusive !== 'No') return false;
+    if (q) {
+      const hay = (r.title + ' ' + r.titleEN + ' ' + r.url + ' ' + r.writer + ' ' + r.site + ' ' + r.category).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+// ── SORT ──
+function sortBy(col) {
+  if (sortCol === col) sortDir *= -1;
+  else { sortCol = col; sortDir = 1; }
+  renderTable();
+}
+
+function compare(a, b) {
+  let va = a[sortCol], vb = b[sortCol];
+  if (sortCol === 'date') { va = a.date || new Date(0); vb = b.date || new Date(0); }
+  if (sortCol === 'sessions') { va = a.sessions; vb = b.sessions; }
+  if (va < vb) return -1 * sortDir;
+  if (va > vb) return 1 * sortDir;
+  return 0;
+}
+
+// ── RENDER TABLE ──
+function renderTable() {
+  const rows = getFiltered().sort(compare);
+  const tbody = document.getElementById('tbody');
+  // Render max 2000 for performance
+  const show = rows.slice(0, 2000);
+  tbody.innerHTML = show.map(r => `<tr>
+    <td>${esc(r.site)}</td>
+    <td class="num">${esc(r.dateStr)}</td>
+    <td title="${esc(r.title)}">${esc(r.title)}</td>
+    <td title="${esc(r.titleEN)}">${esc(r.titleEN)}</td>
+    <td>${esc(r.category)}</td>
+    <td>${esc(r.writer)}</td>
+    <td class="num">${r.sessions.toLocaleString()}</td>
+    <td>${r.url ? `<a href="${esc(r.url)}" target="_blank">🔗 link</a>` : ''}</td>
+    <td>${tag(r.ai)}</td>
+    <td>${tag(r.exclusive)}</td>
+  </tr>`).join('');
+
+  document.getElementById('status').textContent = `${rows.length} articles${rows.length > 2000 ? ' (showing first 2000)' : ''} — ${allRows.length} total`;
+}
+
+function esc(s) { return s ? s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
+function tag(v) {
+  if (v === 'Yes') return '<span class="tag tag-yes">Yes</span>';
+  if (v === 'No') return '<span class="tag tag-no">No</span>';
+  return '<span class="tag tag-no">—</span>';
+}
+
+// ── STATS ──
+function renderStats() {
+  const grid = document.getElementById('stats-grid');
+  const sites = [...new Set(allRows.map(r => r.site))].sort();
+  let html = '';
+
+  for (const site of sites) {
+    const siteRows = allRows.filter(r => r.site === site);
+    const months = [...new Set(siteRows.map(r => r.month).filter(Boolean))].sort();
+    html += `<div class="stat-card"><h3>${esc(site)}</h3><table class="stat-table">
+      <thead><tr><th>Month</th><th>All</th><th>Exclusive</th><th>AI</th></tr></thead><tbody>`;
+    let tAll = 0, tExcl = 0, tAI = 0;
+    for (const m of months) {
+      const mRows = siteRows.filter(r => r.month === m);
+      const nAll = mRows.length;
+      const nExcl = mRows.filter(r => r.exclusive === 'Yes').length;
+      const nAI = mRows.filter(r => r.ai === 'Yes').length;
+      tAll += nAll; tExcl += nExcl; tAI += nAI;
+      html += `<tr><td>${m}</td><td class="num">${nAll}</td><td class="num">${nExcl}</td><td class="num">${nAI}</td></tr>`;
+    }
+    html += `<tr style="font-weight:600;border-top:2px solid var(--border)"><td>Total</td><td class="num">${tAll}</td><td class="num">${tExcl}</td><td class="num">${tAI}</td></tr>`;
+    html += `</tbody></table></div>`;
+  }
+  grid.innerHTML = html;
+}
+
+// ── VIEWS ──
+function showView(v) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('articles-view').style.display = v === 'articles' ? '' : 'none';
+  document.getElementById('stats-view').style.display = v === 'stats' ? '' : 'none';
+  if (v === 'stats') renderStats();
+}
+
+// ── EXPORT CSV ──
+function exportCSV(type) {
+  let data, filename;
+
+  if (type === 'all') {
+    data = getFiltered().map(r => ({
+      Site: r.site, Date: r.dateStr, 'Title': r.title, 'Title EN': r.titleEN,
+      Category: r.category, Writer: r.writer, Sessions: r.sessions,
+      URL: r.url, AI: r.ai, Exclusive: r.exclusive,
+    }));
+    filename = 'monthlyfiles_all.csv';
+  }
+  else if (type === 'ai') {
+    // AI articles grouped by site and month
+    const aiRows = allRows.filter(r => r.ai === 'Yes');
+    data = aiRows.map(r => ({
+      Site: r.site, Month: r.month, Date: r.dateStr, Title: r.title,
+      Category: r.category, Writer: r.writer, URL: r.url,
+    }));
+    data.sort((a, b) => a.Site.localeCompare(b.Site) || a.Month.localeCompare(b.Month));
+    filename = 'monthlyfiles_AI_articles.csv';
+  }
+  else if (type === 'stats') {
+    data = [];
+    const sites = [...new Set(allRows.map(r => r.site))].sort();
+    for (const site of sites) {
+      const siteRows = allRows.filter(r => r.site === site);
+      const months = [...new Set(siteRows.map(r => r.month).filter(Boolean))].sort();
+      for (const m of months) {
+        const mRows = siteRows.filter(r => r.month === m);
+        data.push({
+          Site: site, Month: m,
+          'Total Articles': mRows.length,
+          'Exclusive Articles': mRows.filter(r => r.exclusive === 'Yes').length,
+          'AI Articles': mRows.filter(r => r.ai === 'Yes').length,
+        });
+      }
+    }
+    filename = 'monthlyfiles_stats.csv';
+  }
+
+  const csv = Papa.unparse(data);
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+}
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('tbody').innerHTML = '<tr><td colspan="10"><div class="loading"><div class="spinner"></div>Loading sheets...</div></td></tr>';
+  loadAll();
+});
+</script>
+</body>
+</html>
