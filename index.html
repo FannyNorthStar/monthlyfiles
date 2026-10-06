@@ -7,60 +7,65 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0f1117;--card:#1a1d27;--border:#2a2d3a;--text:#e2e4eb;--dim:#8b8fa3;--accent:#6c5ce7;--accent2:#a29bfe;--green:#00b894;--red:#e17055;--yellow:#fdcb6e;--orange:#e67e22}
+:root{--bg:#0f1117;--card:#1a1d27;--border:#2a2d3a;--text:#e2e4eb;--dim:#8b8fa3;--accent:#6c5ce7;--accent2:#a29bfe;--green:#00b894;--red:#e17055;--yellow:#fdcb6e}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-.header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.header h1{font-size:1.3rem;font-weight:600;color:var(--accent2)}
-.tabs{display:flex;gap:4px;background:var(--card);border-radius:8px;padding:3px}
-.tab{padding:8px 18px;border-radius:6px;cursor:pointer;font-size:.85rem;color:var(--dim);transition:.2s;border:none;background:none}
+.header{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.header h1{font-size:1.2rem;font-weight:600;color:var(--accent2)}
+.tabs{display:flex;gap:3px;background:var(--card);border-radius:8px;padding:3px}
+.tab{padding:7px 14px;border-radius:6px;cursor:pointer;font-size:.82rem;color:var(--dim);transition:.2s;border:none;background:none;white-space:nowrap}
 .tab.active{background:var(--accent);color:#fff}
 .tab:hover:not(.active){color:var(--text)}
-.badge{display:inline-block;background:var(--red);color:#fff;font-size:.65rem;padding:1px 6px;border-radius:8px;margin-left:6px;vertical-align:middle}
-.controls{padding:12px 24px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--border)}
-.controls select,.controls input{background:var(--card);border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:6px;font-size:.82rem}
-.controls input{width:220px}
-.controls select{min-width:120px}
-.btn{padding:7px 16px;border-radius:6px;border:none;cursor:pointer;font-size:.82rem;font-weight:500;transition:.2s}
+.badge{display:inline-block;background:var(--red);color:#fff;font-size:.6rem;padding:1px 5px;border-radius:8px;margin-left:3px;vertical-align:middle}
+.controls{padding:10px 24px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--border)}
+.controls select,.controls input{background:var(--card);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:.8rem}
+.controls input{width:180px}
+.controls select{min-width:100px}
+.btn{padding:6px 12px;border-radius:6px;border:none;cursor:pointer;font-size:.8rem;font-weight:500;transition:.2s}
 .btn-accent{background:var(--accent);color:#fff}.btn-accent:hover{background:var(--accent2)}
 .btn-outline{background:none;border:1px solid var(--border);color:var(--dim)}.btn-outline:hover{border-color:var(--accent);color:var(--accent2)}
-.status{padding:10px 24px;font-size:.8rem;color:var(--dim)}
-.table-wrap{overflow-x:auto;padding:0 24px 24px}
-table{width:100%;border-collapse:collapse;font-size:.8rem}
-th{background:var(--card);position:sticky;top:0;padding:10px 12px;text-align:left;color:var(--dim);font-weight:500;border-bottom:2px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}
+.bar{padding:8px 24px;font-size:.78rem;color:var(--dim);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.progress-wrap{padding:0 24px 6px}
+.progress-bg{background:var(--card);border-radius:4px;height:5px;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .3s}
+.table-wrap{overflow-x:auto;padding:0 24px 16px}
+table{width:100%;border-collapse:collapse;font-size:.78rem}
+th{background:var(--card);position:sticky;top:0;padding:8px 10px;text-align:left;color:var(--dim);font-weight:500;border-bottom:2px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}
 th:hover{color:var(--accent2)}
-th .arrow{margin-left:4px;font-size:.65rem}
-td{padding:8px 12px;border-bottom:1px solid var(--border);max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+td{padding:6px 10px;border-bottom:1px solid var(--border);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 tr:hover td{background:rgba(108,92,231,.06)}
 td a{color:var(--accent2);text-decoration:none}td a:hover{text-decoration:underline}
-.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.72rem;font-weight:500}
+.tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:.7rem;font-weight:500}
 .tag-yes{background:rgba(0,184,148,.15);color:var(--green)}
 .tag-no{background:rgba(139,143,163,.1);color:var(--dim)}
 .tag-ok{background:rgba(0,184,148,.15);color:var(--green)}
 .tag-err{background:rgba(225,112,85,.15);color:var(--red)}
 .tag-warn{background:rgba(253,203,110,.15);color:var(--yellow)}
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;padding:16px 24px}
-.stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
-.stat-card h3{font-size:.9rem;margin-bottom:12px;color:var(--accent2)}
-.stat-table{width:100%;font-size:.78rem}
-.stat-table th{background:none;padding:6px 8px;border-bottom:1px solid var(--border);cursor:default}
-.stat-table td{padding:6px 8px;border-bottom:1px solid rgba(42,45,58,.5)}
+.pager{display:flex;align-items:center;gap:6px}
+.pager button{background:var(--card);border:1px solid var(--border);color:var(--dim);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:.78rem}
+.pager button:hover{border-color:var(--accent);color:var(--accent2)}
+.pager button:disabled{opacity:.3;cursor:default}
+.pager span{font-size:.78rem;color:var(--dim)}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;padding:14px 24px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px}
+.stat-card h3{font-size:.85rem;margin-bottom:10px;color:var(--accent2)}
+.stat-table{width:100%;font-size:.76rem}
+.stat-table th{background:none;padding:5px 7px;border-bottom:1px solid var(--border);cursor:default}
+.stat-table td{padding:5px 7px;border-bottom:1px solid rgba(42,45,58,.5)}
 .stat-table tr:last-child td{border-bottom:none}
 .num{font-variant-numeric:tabular-nums}
-.loading{display:flex;align-items:center;justify-content:center;height:300px;color:var(--dim)}
-.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin-right:12px}
+.loading{display:flex;align-items:center;justify-content:center;height:180px;color:var(--dim)}
+.spinner{width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin-right:10px}
 @keyframes spin{to{transform:rotate(360deg)}}
-.export-wrap{padding:12px 24px;display:flex;gap:10px;flex-wrap:wrap}
-.log-wrap{padding:16px 24px}
-.log-entry{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:8px;font-size:.82rem;display:flex;gap:12px;align-items:flex-start}
-.log-entry .log-icon{font-size:1.1rem;flex-shrink:0;margin-top:1px}
-.log-entry .log-body{flex:1}
-.log-entry .log-title{font-weight:600;margin-bottom:2px}
-.log-entry .log-detail{color:var(--dim);font-size:.78rem}
-.log-entry .log-time{color:var(--dim);font-size:.72rem;flex-shrink:0}
-.log-summary{display:flex;gap:20px;padding:16px 24px;flex-wrap:wrap}
-.log-summary-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 20px;text-align:center}
-.log-summary-item .num{font-size:1.5rem;font-weight:700}
-.log-summary-item .label{font-size:.75rem;color:var(--dim);margin-top:2px}
+.log-wrap{padding:14px 24px}
+.log-entry{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:8px 12px;margin-bottom:5px;font-size:.76rem;display:flex;gap:8px;align-items:flex-start}
+.log-entry .log-body{flex:1;min-width:0}
+.log-entry .log-title{font-weight:600}
+.log-entry .log-detail{color:var(--dim);font-size:.72rem;word-break:break-all}
+.log-summary{display:flex;gap:12px;padding:14px 24px;flex-wrap:wrap}
+.log-summary-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 16px;text-align:center}
+.log-summary-item .snum{font-size:1.3rem;font-weight:700}
+.log-summary-item .label{font-size:.7rem;color:var(--dim);margin-top:2px}
+.view{display:none}.view.active{display:block}
 </style>
 </head>
 <body>
@@ -68,444 +73,349 @@ td a{color:var(--accent2);text-decoration:none}td a:hover{text-decoration:underl
 <div class="header">
   <h1>📊 Monthly Files</h1>
   <div class="tabs">
-    <button class="tab active" data-view="articles" onclick="showView('articles',this)">Articles</button>
-    <button class="tab" data-view="stats" onclick="showView('stats',this)">Stats</button>
-    <button class="tab" data-view="status" onclick="showView('status',this)">Status <span class="badge" id="err-badge" style="display:none">0</span></button>
+    <button class="tab active" onclick="showView('articles',this)">All (excl. SM)</button>
+    <button class="tab" onclick="showView('sm',this)">SM</button>
+    <button class="tab" onclick="showView('ai',this)">AI</button>
+    <button class="tab" onclick="showView('exclusive',this)">Exclusive</button>
+    <button class="tab" onclick="showView('stats',this)">Stats</button>
+    <button class="tab" onclick="showView('status',this)">Status <span class="badge" id="err-badge" style="display:none">0</span></button>
   </div>
 </div>
+<div class="progress-wrap"><div class="progress-bg"><div class="progress-fill" id="progress" style="width:0%"></div></div></div>
+<div class="bar" id="global-bar"><span id="global-status">Initializing...</span></div>
 
-<div id="articles-view">
+<!-- ═══ ARTICLES ═══ -->
+<div class="view active" id="v-articles">
   <div class="controls">
-    <input type="text" id="search" placeholder="Search title, URL, writer..." oninput="renderTable()">
-    <select id="filter-site" onchange="renderTable()"><option value="">All sites</option></select>
-    <select id="filter-month" onchange="renderTable()"><option value="">All months</option></select>
-    <select id="filter-ai" onchange="renderTable()">
-      <option value="">AI: All</option><option value="yes">AI: Yes</option><option value="no">AI: No</option>
-    </select>
-    <select id="filter-excl" onchange="renderTable()">
-      <option value="">Exclusive: All</option><option value="yes">Exclusive: Yes</option><option value="no">Exclusive: No</option>
-    </select>
-    <button class="btn btn-outline" onclick="exportCSV('all')">⬇ CSV All</button>
-    <button class="btn btn-accent" onclick="exportCSV('ai')">⬇ CSV AI by site/month</button>
+    <select id="art-month" onchange="pages.articles=0;renderArticles()"></select>
+    <select id="art-site" onchange="pages.articles=0;renderArticles()"><option value="">All sites</option></select>
+    <input type="text" id="art-search" placeholder="Search..." oninput="debounce('articles')">
+    <button class="btn btn-outline" onclick="exportCSV('articles')">⬇ CSV</button>
   </div>
-  <div class="status" id="status">Loading sheets...</div>
-  <div class="table-wrap">
-    <table id="main-table">
-      <thead><tr>
-        <th onclick="sortBy('site')">Site</th>
-        <th onclick="sortBy('date')">Date</th>
-        <th onclick="sortBy('title')">Title</th>
-        <th onclick="sortBy('titleEN')">Title EN</th>
-        <th onclick="sortBy('category')">Category</th>
-        <th onclick="sortBy('writer')">Writer</th>
-        <th onclick="sortBy('sessions')">Sessions</th>
-        <th>URL</th>
-        <th onclick="sortBy('ai')">AI</th>
-        <th onclick="sortBy('exclusive')">Exclusive</th>
-      </tr></thead>
-      <tbody id="tbody"></tbody>
-    </table>
+  <div class="bar"><span id="art-status"></span>
+    <div class="pager"><button onclick="pagePrev('articles')">← Prev</button><span id="art-page"></span><button onclick="pageNext('articles')">Next →</button></div>
   </div>
+  <div class="table-wrap"><table><thead><tr>
+    <th onclick="doSort('articles','site')">Site</th><th onclick="doSort('articles','date')">Date</th>
+    <th onclick="doSort('articles','title')">Title</th><th onclick="doSort('articles','titleEN')">Title EN</th>
+    <th onclick="doSort('articles','category')">Category</th><th onclick="doSort('articles','writer')">Writer</th>
+    <th onclick="doSort('articles','sessions')">Sessions</th><th>URL</th>
+    <th onclick="doSort('articles','ai')">AI</th><th onclick="doSort('articles','exclusive')">Exclusive</th>
+  </tr></thead><tbody id="art-tbody"></tbody></table></div>
 </div>
 
-<div id="stats-view" style="display:none">
-  <div class="export-wrap">
-    <button class="btn btn-outline" onclick="exportCSV('stats')">⬇ CSV Stats</button>
+<!-- ═══ SM ═══ -->
+<div class="view" id="v-sm">
+  <div class="controls">
+    <select id="sm-month" onchange="pages.sm=0;renderSM()"></select>
+    <input type="text" id="sm-search" placeholder="Search..." oninput="debounce('sm')">
+    <button class="btn btn-outline" onclick="exportCSV('sm')">⬇ CSV</button>
   </div>
+  <div class="bar"><span id="sm-status"></span>
+    <div class="pager"><button onclick="pagePrev('sm')">← Prev</button><span id="sm-page"></span><button onclick="pageNext('sm')">Next →</button></div>
+  </div>
+  <div class="table-wrap"><table><thead><tr>
+    <th onclick="doSort('sm','date')">Date</th>
+    <th onclick="doSort('sm','title')">Title</th><th onclick="doSort('sm','titleEN')">Title EN</th>
+    <th onclick="doSort('sm','category')">Category</th><th onclick="doSort('sm','writer')">Writer</th>
+    <th onclick="doSort('sm','sessions')">Sessions</th><th>URL</th>
+    <th onclick="doSort('sm','ai')">AI</th><th onclick="doSort('sm','exclusive')">Exclusive</th>
+  </tr></thead><tbody id="sm-tbody"></tbody></table></div>
+</div>
+
+<!-- ═══ AI ═══ -->
+<div class="view" id="v-ai">
+  <div class="controls">
+    <select id="ai-site" onchange="pages.ai=0;renderAI()"><option value="">All sites</option></select>
+    <select id="ai-month" onchange="pages.ai=0;renderAI()"><option value="">All months</option></select>
+    <input type="text" id="ai-search" placeholder="Search..." oninput="debounce('ai')">
+    <button class="btn btn-accent" onclick="exportCSV('ai')">⬇ CSV AI</button>
+  </div>
+  <div class="bar"><span id="ai-status"></span>
+    <div class="pager"><button onclick="pagePrev('ai')">← Prev</button><span id="ai-page"></span><button onclick="pageNext('ai')">Next →</button></div>
+  </div>
+  <div class="table-wrap"><table><thead><tr>
+    <th onclick="doSort('ai','site')">Site</th><th onclick="doSort('ai','date')">Date</th>
+    <th onclick="doSort('ai','title')">Title</th><th onclick="doSort('ai','category')">Category</th>
+    <th onclick="doSort('ai','writer')">Writer</th><th onclick="doSort('ai','sessions')">Sessions</th><th>URL</th>
+  </tr></thead><tbody id="ai-tbody"></tbody></table></div>
+</div>
+
+<!-- ═══ EXCLUSIVE ═══ -->
+<div class="view" id="v-exclusive">
+  <div class="controls">
+    <select id="excl-site" onchange="pages.exclusive=0;renderExcl()"><option value="">All sites</option></select>
+    <select id="excl-month" onchange="pages.exclusive=0;renderExcl()"><option value="">All months</option></select>
+    <input type="text" id="excl-search" placeholder="Search..." oninput="debounce('exclusive')">
+    <button class="btn btn-outline" onclick="exportCSV('exclusive')">⬇ CSV Excl</button>
+  </div>
+  <div class="bar"><span id="excl-status"></span>
+    <div class="pager"><button onclick="pagePrev('exclusive')">← Prev</button><span id="excl-page"></span><button onclick="pageNext('exclusive')">Next →</button></div>
+  </div>
+  <div class="table-wrap"><table><thead><tr>
+    <th onclick="doSort('exclusive','site')">Site</th><th onclick="doSort('exclusive','date')">Date</th>
+    <th onclick="doSort('exclusive','title')">Title</th><th onclick="doSort('exclusive','category')">Category</th>
+    <th onclick="doSort('exclusive','writer')">Writer</th><th onclick="doSort('exclusive','sessions')">Sessions</th>
+    <th>URL</th><th onclick="doSort('exclusive','ai')">AI</th>
+  </tr></thead><tbody id="excl-tbody"></tbody></table></div>
+</div>
+
+<!-- ═══ STATS ═══ -->
+<div class="view" id="v-stats">
+  <div class="controls"><button class="btn btn-outline" onclick="exportCSV('stats')">⬇ CSV Stats</button></div>
   <div class="stats-grid" id="stats-grid"></div>
 </div>
 
-<div id="status-view" style="display:none">
+<!-- ═══ STATUS ═══ -->
+<div class="view" id="v-status">
   <div class="log-summary" id="log-summary"></div>
   <div class="log-wrap" id="log-wrap"></div>
 </div>
 
 <script>
-// ── CONFIG ──
-const SOURCES = [
-  { id:'10x-NuFu-wC27T-FjR3xz4Z5gaCqo3HLYJEgOMoq9CLw', tabs:['LBEdito','UDEEdito','TRIVELAEdito'] },
-  { id:'1DnZjtM_M7WrRSdFdmVdhv7WoQNcwXuXWPrCOe2jC-S0', tabs:['AFNGEdito','AFZAEdito','SNEdito'] },
-  { id:'1Q6JhvtaJk5zpjxZVVvxRhqE2fnMnuZDwwY4CHuI2RSo', tabs:['VRINGEEdito','FPEdito','LubEdito'] },
-  { id:'1F83thLimoSb6EUuRXBilsbwyjwUwRQQhSONNo8R1G8w', tabs:['SBEdito','CDAEdito','AALEdito'] },
-  { id:'1RvK17qIyb5tRVp_VZhUG61KDmqMW9n44CKGlrNn4NGY', tabs:['SMEdito','FGGEdito','FWEdito','MFTEdito'] },
-  { id:'1iAShwI2K5V8uTWZ-5gvUiCkUVaNkQF07Ef4fQbcNFiM', tabs:['TMEdito','AFEdito'] },
+const PAGE_SIZE = 500;
+const SOURCES=[
+  {id:'10x-NuFu-wC27T-FjR3xz4Z5gaCqo3HLYJEgOMoq9CLw',tabs:['LBEdito','UDEEdito','TRIVELAEdito']},
+  {id:'1DnZjtM_M7WrRSdFdmVdhv7WoQNcwXuXWPrCOe2jC-S0',tabs:['AFNGEdito','AFZAEdito','SNEdito']},
+  {id:'1Q6JhvtaJk5zpjxZVVvxRhqE2fnMnuZDwwY4CHuI2RSo',tabs:['VRINGEEdito','FPEdito','LubEdito']},
+  {id:'1F83thLimoSb6EUuRXBilsbwyjwUwRQQhSONNo8R1G8w',tabs:['SBEdito','CDAEdito','AALEdito']},
+  {id:'1RvK17qIyb5tRVp_VZhUG61KDmqMW9n44CKGlrNn4NGY',tabs:['SMEdito','FGGEdito','FWEdito','MFTEdito']},
+  {id:'1iAShwI2K5V8uTWZ-5gvUiCkUVaNkQF07Ef4fQbcNFiM',tabs:['TMEdito','AFEdito']},
 ];
+const FM={site:['Site'],title:['Title','Corrección Andrea','Título'],titleEN:['Title (EN)','Title EN'],
+  date:['Publication date','Publication Date','Date','Fecha'],category:['Category','Catégorie','Categoría'],
+  writer:['Writer','Editor','Editeur','Éditeur','Author'],sessions:['Sessions'],
+  url:['Published URL','URL of the content','URL','Slug (or existing URL to update)'],ai:['AI?','AI']};
+const EXCL_RE=/\bexclu(?:sif|sive|sivo|siva|sivité|sividad)?\b|\besclusiv[oae]\b|\bэксклюзив\w*/i;
 
-const FIELD_MAP = {
-  site:     ['Site'],
-  title:    ['Title','Corrección Andrea','Título'],
-  titleEN:  ['Title (EN)','Title EN'],
-  date:     ['Publication date','Publication Date','Date'],
-  category: ['Category','Catégorie'],
-  writer:   ['Writer','Editor','Editeur','Éditeur'],
-  sessions: ['Sessions'],
-  url:      ['Published URL','URL of the content','URL','Slug (or existing URL to update)'],
-  ai:       ['AI?','AI'],
-};
+let allRows=[],logs=[],seenURLs=new Set(),doneN=0,totalN=0;
+let sorts={articles:{col:'date',dir:-1},sm:{col:'date',dir:-1},ai:{col:'date',dir:-1},exclusive:{col:'date',dir:-1}};
+let pages={articles:0,sm:0,ai:0,exclusive:0};
+let filteredCache={articles:null,ai:null,exclusive:null};
+let debounceTimers={};
 
-const EXCL_RE = /\bexclu(?:sif|sive|sivo|siva|sivité|sividad)?\b|\besclusiv[oae]\b|\bэксклюзив\w*/i;
+// ── helpers ──
+function rv(row,f){for(const c of(FM[f]||[])){if(row[c]!=null){const v=String(row[c]).trim();if(v&&v!=='#N/A'&&v!=='#REF!')return v;}for(const k of Object.keys(row)){if(k.replace(/[\n\r]/g,' ').trim().toLowerCase()===c.toLowerCase()){const v=String(row[k]).trim();if(v&&v!=='#N/A'&&v!=='#REF!')return v;}}}return '';}
+function pd(r){if(!r)return null;r=r.trim();const p=r.split('/');if(p.length>=2){let d=+p[0],m=+p[1],y=p[2]?+p[2]:2026;if(y<100)y+=2000;if(m>=1&&m<=12&&d>=1&&d<=31&&y>2000)return new Date(y,m-1,d);}const dt=new Date(r);return isNaN(dt)?null:dt;}
+function fd(d){return(!d||isNaN(d))?'':d.toISOString().slice(0,10);}
+function mk(d){return(!d||isNaN(d))?'':d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
+function nai(v){if(!v)return '';v=v.toUpperCase().trim();return(v==='TRUE'||v==='YES'||v==='OUI')?'Yes':(v==='FALSE'||v==='NO'||v==='NON')?'No':'';}
+function pn(v){return v?(parseInt(String(v).replace(/[^0-9]/g,''),10)||0):0;}
+function esc(s){return s?s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):''}
+function tag(v){return v==='Yes'?'<span class="tag tag-yes">Yes</span>':v==='No'?'<span class="tag tag-no">No</span>':'<span class="tag tag-no">—</span>';}
+function addLog(src,st,msg,ex={}){logs.push({time:new Date().toLocaleTimeString(),source:src,status:st,msg,...ex});const e=logs.filter(l=>l.status==='error').length;const b=document.getElementById('err-badge');if(e>0){b.textContent=e;b.style.display='';}else b.style.display='none';}
 
-// ── STATE ──
-let allRows = [];
-let sortCol = 'date', sortDir = -1;
-let logs = []; // {time, tab, sheetId, status:'ok'|'error'|'warn', msg, rows, headers, duration}
-let loadedCount = 0, totalTabs = 0;
-
-// ── HELPERS ──
-function resolve(row, field) {
-  const candidates = FIELD_MAP[field] || [];
-  for (const c of candidates) {
-    if (row[c] !== undefined && row[c] !== null && String(row[c]).trim() !== '' && String(row[c]).trim() !== '#N/A' && String(row[c]).trim() !== '#REF!') {
-      return String(row[c]).trim();
+// ── fetch ──
+async function fetchTab(sid,tab){
+  const t0=performance.now();
+  try{
+    const res=await fetch(`https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`);
+    const dur=Math.round(performance.now()-t0);
+    if(!res.ok){addLog(tab,'error',`HTTP ${res.status}`,{duration:dur});return;}
+    const parsed=Papa.parse(await res.text(),{header:true,skipEmptyLines:true,dynamicTyping:false});
+    const rows=parsed.data,headers=Object.keys(rows[0]||{}).filter(h=>h.trim());
+    const hasAI=headers.some(h=>/^AI\??$/i.test(h.replace(/[\n\r]/g,' ').trim()));
+    let added=0,noUrl=0;
+    for(const row of rows){
+      const title=rv(row,'title');if(!title)continue;
+      const site=rv(row,'site');if(!site)continue;
+      const urlVal=rv(row,'url');
+      if(!urlVal){noUrl++;continue;}
+      if(seenURLs.has(urlVal))continue;
+      seenURLs.add(urlVal);
+      const d=pd(rv(row,'date')),cat=rv(row,'category');
+      allRows.push({site,date:d,dateStr:fd(d),month:mk(d),title,titleEN:rv(row,'titleEN'),
+        category:cat,writer:rv(row,'writer'),sessions:pn(rv(row,'sessions')),url:urlVal,
+        ai:nai(rv(row,'ai')),exclusive:(EXCL_RE.test(title)||EXCL_RE.test(urlVal)||EXCL_RE.test(cat))?'Yes':'No'});
+      added++;
     }
-    for (const k of Object.keys(row)) {
-      if (k.replace(/\n/g,' ').trim().toLowerCase() === c.toLowerCase()) {
-        const v = String(row[k]).trim();
-        if (v && v !== '#N/A' && v !== '#REF!') return v;
-      }
-    }
-  }
-  return '';
+    const w=[];if(!hasAI)w.push('no AI? col');if(noUrl)w.push(`${noUrl} no-URL skipped`);
+    addLog(tab,w.length?'warn':'ok',`${added.toLocaleString()} articles / ${rows.length.toLocaleString()} rows`+(w.length?' — '+w.join('; '):''),{duration:dur,headers,rows:added});
+  }catch(e){addLog(tab,'error',e.message,{duration:Math.round(performance.now()-t0)});}
+  doneN++;
+  document.getElementById('progress').style.width=Math.round(doneN/totalN*100)+'%';
+  document.getElementById('global-status').textContent=`Loading ${doneN}/${totalN} — ${allRows.length.toLocaleString()} articles`;
 }
 
-function parseDate(raw) {
-  if (!raw) return null;
-  raw = raw.trim();
-  const parts = raw.split('/');
-  if (parts.length === 3) {
-    let [d, m, y] = parts;
-    if (y.length === 2) y = '20' + y;
-    return new Date(y, m - 1, d);
-  }
-  if (parts.length === 2) {
-    return new Date(2026, parts[1] - 1, parts[0]);
-  }
-  const d = new Date(raw);
-  return isNaN(d) ? null : d;
-}
-
-function fmtDate(d) { return (!d || isNaN(d)) ? '' : d.toISOString().slice(0,10); }
-function monthKey(d) { return (!d || isNaN(d)) ? '' : d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
-function isExclusive(t,u,c) { return EXCL_RE.test(t)||EXCL_RE.test(u)||EXCL_RE.test(c); }
-function normalizeAI(v) {
-  if (!v) return '';
-  v = v.toUpperCase().trim();
-  if (v==='TRUE'||v==='YES'||v==='OUI') return 'Yes';
-  if (v==='FALSE'||v==='NO'||v==='NON') return 'No';
-  return '';
-}
-function parseNum(v) { return v ? (parseInt(String(v).replace(/[^0-9]/g,''),10)||0) : 0; }
-
-// ── LOGGING ──
-function log(tab, sheetId, status, msg, extra={}) {
-  logs.push({ time: new Date().toLocaleTimeString(), tab, sheetId, status, msg, ...extra });
-  updateBadge();
-}
-
-function updateBadge() {
-  const errs = logs.filter(l => l.status === 'error').length;
-  const badge = document.getElementById('err-badge');
-  if (errs > 0) { badge.textContent = errs; badge.style.display = ''; }
-  else badge.style.display = 'none';
-}
-
-// ── FETCH ──
-function sheetURL(id, tab) {
-  return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`;
-}
-
-async function fetchTab(id, tab) {
-  const t0 = performance.now();
-  try {
-    const res = await fetch(sheetURL(id, tab));
-    const dur = Math.round(performance.now() - t0);
-    if (!res.ok) {
-      log(tab, id, 'error', `HTTP ${res.status} ${res.statusText}`, { duration: dur });
-      return [];
-    }
-    const text = await res.text();
-    const parsed = Papa.parse(text, { header:true, skipEmptyLines:true, dynamicTyping:false });
-
-    if (parsed.errors.length > 0) {
-      log(tab, id, 'warn', `Parsed with ${parsed.errors.length} warning(s): ${parsed.errors[0].message}`, {
-        rows: parsed.data.length, headers: Object.keys(parsed.data[0]||{}), duration: dur
-      });
-    }
-
-    // Detect if redirect happened (all rows have same Site as another tab)
-    const headers = Object.keys(parsed.data[0] || {});
-    const validRows = parsed.data.filter(r => {
-      const t = resolve(r,'title'), s = resolve(r,'site');
-      return t && s && t !== 'Housekeeping' && (r['Year']||'') !== '1899';
-    });
-
-    if (validRows.length === 0) {
-      log(tab, id, 'error', `0 valid articles found — tab may not exist or is empty`, {
-        rows: 0, headers, duration: dur
-      });
-      return [];
-    }
-
-    const hasAI = headers.some(h => h.replace(/\n/g,' ').trim().match(/^AI\??$/i));
-
-    log(tab, id, 'ok',
-      `${validRows.length} articles loaded` + (hasAI ? '' : ' — no AI? column detected'),
-      { rows: validRows.length, headers, duration: dur, hasAI }
-    );
-
-    return parsed.data;
-  } catch (e) {
-    const dur = Math.round(performance.now() - t0);
-    log(tab, id, 'error', `Fetch failed: ${e.message}`, { duration: dur });
-    return [];
-  }
-}
-
-async function loadAll() {
-  totalTabs = SOURCES.reduce((s,src) => s+src.tabs.length, 0);
-  const promises = [];
-
-  for (const src of SOURCES) {
-    for (const tab of src.tabs) {
-      promises.push(
-        fetchTab(src.id, tab).then(rows => {
-          for (const row of rows) {
-            const title = resolve(row,'title');
-            const site = resolve(row,'site');
-            if (!title || !site) continue;
-            if (title === 'Housekeeping') continue;
-            const yearCol = row['Year']||'';
-            if (yearCol === '1899') continue;
-
-            const rawDate = resolve(row,'date');
-            const d = parseDate(rawDate);
-            const urlVal = resolve(row,'url');
-            const catVal = resolve(row,'category');
-
-            allRows.push({
-              site, date:d, dateStr:fmtDate(d), month:monthKey(d),
-              title, titleEN:resolve(row,'titleEN'),
-              category:catVal, writer:resolve(row,'writer'),
-              sessions:parseNum(resolve(row,'sessions')),
-              url:urlVal, ai:normalizeAI(resolve(row,'ai')),
-              exclusive:isExclusive(title,urlVal,catVal)?'Yes':'No',
-              _tab: tab,
-            });
-          }
-          loadedCount++;
-          document.getElementById('status').textContent = `Loaded ${loadedCount}/${totalTabs} tabs (${allRows.length} articles)`;
-        })
-      );
-    }
-  }
-
-  await Promise.all(promises);
-  detectDuplicateTabs();
+async function loadAll(){
+  const tabs=SOURCES.flatMap(s=>s.tabs.map(t=>({id:s.id,tab:t})));
+  totalN=tabs.length;
+  await Promise.all(tabs.map(({id,tab})=>fetchTab(id,tab)));
+  document.getElementById('progress').style.width='100%';
+  document.getElementById('global-status').textContent=`✅ ${allRows.length.toLocaleString()} articles from ${totalN} tabs`;
   buildFilters();
-  renderTable();
-  document.getElementById('status').textContent = `${allRows.length} articles loaded from ${totalTabs} tabs`;
+  renderArticles();
 }
 
-function detectDuplicateTabs() {
-  // Warn if two tabs returned identical data (redirect issue)
-  const tabSigs = {};
-  for (const src of SOURCES) {
-    for (const tab of src.tabs) {
-      const tabRows = allRows.filter(r => r._tab === tab);
-      if (tabRows.length === 0) continue;
-      const sig = tabRows.slice(0,5).map(r => r.title).join('|');
-      if (tabSigs[sig] && tabSigs[sig] !== tab) {
-        log(tab, src.id, 'warn',
-          `Data looks identical to "${tabSigs[sig]}" — possible redirect (wrong tab name?)`,
-          { rows: tabRows.length }
-        );
-      } else {
-        tabSigs[sig] = tab;
-      }
-    }
-  }
+// ── filters ──
+function buildFilters(){
+  const sites=[...new Set(allRows.map(r=>r.site))].sort();
+  const months=[...new Set(allRows.map(r=>r.month).filter(Boolean))].sort();
+  const last=months[months.length-1]||'';
+  ['art-month','sm-month'].forEach(id=>{const el=document.getElementById(id);el.innerHTML='';months.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;if(m===last)o.selected=true;el.appendChild(o);});});
+  const noSM=sites.filter(s=>s!=='SM');
+  const artS=document.getElementById('art-site');artS.innerHTML='<option value="">All sites</option>';noSM.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;artS.appendChild(o);});
+  ['ai-site','excl-site'].forEach(id=>{const s=document.getElementById(id);s.innerHTML='<option value="">All sites</option>';sites.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;s.appendChild(o);});});
+  ['ai-month','excl-month'].forEach(id=>{const s=document.getElementById(id);s.innerHTML='<option value="">All months</option>';months.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;s.appendChild(o);});});
 }
 
-// ── FILTERS ──
-function buildFilters() {
-  const sites = [...new Set(allRows.map(r=>r.site))].sort();
-  const months = [...new Set(allRows.map(r=>r.month).filter(Boolean))].sort();
-  const selS = document.getElementById('filter-site');
-  const selM = document.getElementById('filter-month');
-  sites.forEach(s => { const o=document.createElement('option'); o.value=s; o.textContent=s; selS.appendChild(o); });
-  months.forEach(m => { const o=document.createElement('option'); o.value=m; o.textContent=m; selM.appendChild(o); });
+// ── debounce ──
+function debounce(view){
+  clearTimeout(debounceTimers[view]);
+  debounceTimers[view]=setTimeout(()=>{pages[view]=0;if(view==='articles')renderArticles();else if(view==='sm')renderSM();else if(view==='ai')renderAI();else renderExcl();},300);
 }
 
-function getFiltered() {
-  const q = document.getElementById('search').value.toLowerCase();
-  const site = document.getElementById('filter-site').value;
-  const month = document.getElementById('filter-month').value;
-  const ai = document.getElementById('filter-ai').value;
-  const excl = document.getElementById('filter-excl').value;
-  return allRows.filter(r => {
-    if (site && r.site!==site) return false;
-    if (month && r.month!==month) return false;
-    if (ai==='yes' && r.ai!=='Yes') return false;
-    if (ai==='no' && r.ai!=='No' && r.ai!=='') return false;
-    if (excl==='yes' && r.exclusive!=='Yes') return false;
-    if (excl==='no' && r.exclusive!=='No') return false;
-    if (q) {
-      const hay = (r.title+' '+r.titleEN+' '+r.url+' '+r.writer+' '+r.site+' '+r.category).toLowerCase();
-      if (!hay.includes(q)) return false;
-    }
-    return true;
-  });
+// ── sort ──
+function doSort(view,col){const s=sorts[view];if(s.col===col)s.dir*=-1;else{s.col=col;s.dir=1;}filteredCache[view]=null;if(view==='articles')renderArticles();else if(view==='ai')renderAI();else renderExcl();}
+function cmp(view,a,b){const s=sorts[view];let va=a[s.col],vb=b[s.col];if(s.col==='date'){va=a.date||new Date(0);vb=b.date||new Date(0);}if(s.col==='sessions'){va=a.sessions;vb=b.sessions;}if(va<vb)return -s.dir;if(va>vb)return s.dir;return 0;}
+
+// ── pagination ──
+function pagePrev(v){if(pages[v]>0){pages[v]--;if(v==='articles')renderArticles();else if(v==='ai')renderAI();else renderExcl();}}
+function pageNext(v){pages[v]++;if(v==='articles')renderArticles();else if(v==='ai')renderAI();else renderExcl();}
+function pageInfo(v,total){
+  const maxP=Math.max(0,Math.ceil(total/PAGE_SIZE)-1);
+  if(pages[v]>maxP)pages[v]=maxP;
+  const p=pages[v],from=p*PAGE_SIZE+1,to=Math.min((p+1)*PAGE_SIZE,total);
+  return {from,to,maxP,label:total?`${from}-${to} of ${total.toLocaleString()}`:'0 results'};
 }
 
-// ── SORT ──
-function sortBy(col) {
-  if (sortCol===col) sortDir*=-1; else { sortCol=col; sortDir=1; }
-  renderTable();
-}
-function compare(a,b) {
-  let va=a[sortCol], vb=b[sortCol];
-  if (sortCol==='date') { va=a.date||new Date(0); vb=b.date||new Date(0); }
-  if (sortCol==='sessions') { va=a.sessions; vb=b.sessions; }
-  if (va<vb) return -1*sortDir; if (va>vb) return sortDir; return 0;
-}
+// ── filter helpers ──
+function searchMatch(r,q){return !q||(r.title+' '+r.titleEN+' '+r.url+' '+r.writer+' '+r.site+' '+r.category).toLowerCase().includes(q);}
 
-// ── RENDER TABLE ──
-function renderTable() {
-  const rows = getFiltered().sort(compare);
-  const show = rows.slice(0,2000);
-  document.getElementById('tbody').innerHTML = show.map(r => `<tr>
-    <td>${esc(r.site)}</td>
-    <td class="num">${esc(r.dateStr)}</td>
-    <td title="${esc(r.title)}">${esc(r.title)}</td>
-    <td title="${esc(r.titleEN)}">${esc(r.titleEN)}</td>
-    <td>${esc(r.category)}</td>
-    <td>${esc(r.writer)}</td>
+// ── ARTICLES — all except SM (one month) ──
+function getArticlesFiltered(){
+  const m=document.getElementById('art-month').value,s=document.getElementById('art-site').value,q=document.getElementById('art-search').value.toLowerCase();
+  return allRows.filter(r=>r.site!=='SM'&&r.month===m&&(!s||r.site===s)&&searchMatch(r,q)).sort((a,b)=>cmp('articles',a,b));
+}
+function renderArticles(){
+  const rows=getArticlesFiltered();
+  const pi=pageInfo('articles',rows.length);
+  const slice=rows.slice(pages.articles*PAGE_SIZE,(pages.articles+1)*PAGE_SIZE);
+  document.getElementById('art-tbody').innerHTML=slice.map(r=>`<tr>
+    <td>${esc(r.site)}</td><td class="num">${esc(r.dateStr)}</td>
+    <td title="${esc(r.title)}">${esc(r.title)}</td><td title="${esc(r.titleEN)}">${esc(r.titleEN)}</td>
+    <td>${esc(r.category)}</td><td>${esc(r.writer)}</td>
     <td class="num">${r.sessions.toLocaleString()}</td>
     <td>${r.url?`<a href="${esc(r.url)}" target="_blank">🔗</a>`:''}</td>
-    <td>${tag(r.ai)}</td>
-    <td>${tag(r.exclusive)}</td>
-  </tr>`).join('');
-  document.getElementById('status').textContent = `${rows.length} articles${rows.length>2000?' (showing 2000)':''} — ${allRows.length} total`;
+    <td>${tag(r.ai)}</td><td>${tag(r.exclusive)}</td></tr>`).join('');
+  document.getElementById('art-status').textContent=pi.label;
+  document.getElementById('art-page').textContent=`Page ${pages.articles+1}/${pi.maxP+1}`;
 }
 
-function esc(s) { return s?s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):''; }
-function tag(v) {
-  if (v==='Yes') return '<span class="tag tag-yes">Yes</span>';
-  if (v==='No') return '<span class="tag tag-no">No</span>';
-  return '<span class="tag tag-no">—</span>';
+// ── SM only (one month) ──
+function getSMFiltered(){
+  const m=document.getElementById('sm-month').value,q=document.getElementById('sm-search').value.toLowerCase();
+  return allRows.filter(r=>r.site==='SM'&&r.month===m&&searchMatch(r,q)).sort((a,b)=>cmp('sm',a,b));
+}
+function renderSM(){
+  const rows=getSMFiltered();
+  const pi=pageInfo('sm',rows.length);
+  const slice=rows.slice(pages.sm*PAGE_SIZE,(pages.sm+1)*PAGE_SIZE);
+  document.getElementById('sm-tbody').innerHTML=slice.map(r=>`<tr>
+    <td class="num">${esc(r.dateStr)}</td>
+    <td title="${esc(r.title)}">${esc(r.title)}</td><td title="${esc(r.titleEN)}">${esc(r.titleEN)}</td>
+    <td>${esc(r.category)}</td><td>${esc(r.writer)}</td>
+    <td class="num">${r.sessions.toLocaleString()}</td>
+    <td>${r.url?`<a href="${esc(r.url)}" target="_blank">🔗</a>`:''}</td>
+    <td>${tag(r.ai)}</td><td>${tag(r.exclusive)}</td></tr>`).join('');
+  document.getElementById('sm-status').textContent=pi.label;
+  document.getElementById('sm-page').textContent=`Page ${pages.sm+1}/${pi.maxP+1}`;
+}
+
+// ── AI (all periods) ──
+function getAIFiltered(){
+  const s=document.getElementById('ai-site').value,m=document.getElementById('ai-month').value,q=document.getElementById('ai-search').value.toLowerCase();
+  return allRows.filter(r=>r.ai==='Yes'&&(!s||r.site===s)&&(!m||r.month===m)&&searchMatch(r,q)).sort((a,b)=>cmp('ai',a,b));
+}
+function renderAI(){
+  const rows=getAIFiltered();
+  const pi=pageInfo('ai',rows.length);
+  const slice=rows.slice(pages.ai*PAGE_SIZE,(pages.ai+1)*PAGE_SIZE);
+  document.getElementById('ai-tbody').innerHTML=slice.map(r=>`<tr>
+    <td>${esc(r.site)}</td><td class="num">${esc(r.dateStr)}</td>
+    <td title="${esc(r.title)}">${esc(r.title)}</td><td>${esc(r.category)}</td>
+    <td>${esc(r.writer)}</td><td class="num">${r.sessions.toLocaleString()}</td>
+    <td>${r.url?`<a href="${esc(r.url)}" target="_blank">🔗</a>`:''}</td></tr>`).join('');
+  document.getElementById('ai-status').textContent=pi.label;
+  document.getElementById('ai-page').textContent=`Page ${pages.ai+1}/${pi.maxP+1}`;
+}
+
+// ── EXCLUSIVE (all periods) ──
+function getExclFiltered(){
+  const s=document.getElementById('excl-site').value,m=document.getElementById('excl-month').value,q=document.getElementById('excl-search').value.toLowerCase();
+  return allRows.filter(r=>r.exclusive==='Yes'&&(!s||r.site===s)&&(!m||r.month===m)&&searchMatch(r,q)).sort((a,b)=>cmp('exclusive',a,b));
+}
+function renderExcl(){
+  const rows=getExclFiltered();
+  const pi=pageInfo('exclusive',rows.length);
+  const slice=rows.slice(pages.exclusive*PAGE_SIZE,(pages.exclusive+1)*PAGE_SIZE);
+  document.getElementById('excl-tbody').innerHTML=slice.map(r=>`<tr>
+    <td>${esc(r.site)}</td><td class="num">${esc(r.dateStr)}</td>
+    <td title="${esc(r.title)}">${esc(r.title)}</td><td>${esc(r.category)}</td>
+    <td>${esc(r.writer)}</td><td class="num">${r.sessions.toLocaleString()}</td>
+    <td>${r.url?`<a href="${esc(r.url)}" target="_blank">🔗</a>`:''}</td>
+    <td>${tag(r.ai)}</td></tr>`).join('');
+  document.getElementById('excl-status').textContent=pi.label;
+  document.getElementById('excl-page').textContent=`Page ${pages.exclusive+1}/${pi.maxP+1}`;
 }
 
 // ── STATS ──
-function renderStats() {
-  const grid = document.getElementById('stats-grid');
-  const sites = [...new Set(allRows.map(r=>r.site))].sort();
-  let html = '';
-  for (const site of sites) {
-    const siteRows = allRows.filter(r=>r.site===site);
-    const months = [...new Set(siteRows.map(r=>r.month).filter(Boolean))].sort();
-    html += `<div class="stat-card"><h3>${esc(site)}</h3><table class="stat-table">
-      <thead><tr><th>Month</th><th>All</th><th>Exclusive</th><th>AI</th></tr></thead><tbody>`;
+function renderStats(){
+  const sites=[...new Set(allRows.map(r=>r.site))].sort();let html='';
+  for(const site of sites){
+    const sR=allRows.filter(r=>r.site===site);
+    const months=[...new Set(sR.map(r=>r.month).filter(Boolean))].sort();
+    html+=`<div class="stat-card"><h3>${esc(site)}</h3><table class="stat-table">
+      <thead><tr><th>Month</th><th>All</th><th>Excl</th><th>AI</th></tr></thead><tbody>`;
     let tA=0,tE=0,tI=0;
-    for (const m of months) {
-      const mR = siteRows.filter(r=>r.month===m);
-      const nA=mR.length, nE=mR.filter(r=>r.exclusive==='Yes').length, nI=mR.filter(r=>r.ai==='Yes').length;
-      tA+=nA; tE+=nE; tI+=nI;
-      html += `<tr><td>${m}</td><td class="num">${nA}</td><td class="num">${nE}</td><td class="num">${nI}</td></tr>`;
-    }
-    html += `<tr style="font-weight:600;border-top:2px solid var(--border)"><td>Total</td><td class="num">${tA}</td><td class="num">${tE}</td><td class="num">${tI}</td></tr>`;
-    html += `</tbody></table></div>`;
+    for(const m of months){const mR=sR.filter(r=>r.month===m);const nA=mR.length,nE=mR.filter(r=>r.exclusive==='Yes').length,nI=mR.filter(r=>r.ai==='Yes').length;tA+=nA;tE+=nE;tI+=nI;
+      html+=`<tr><td>${m}</td><td class="num">${nA}</td><td class="num">${nE}</td><td class="num">${nI}</td></tr>`;}
+    html+=`<tr style="font-weight:600;border-top:2px solid var(--border)"><td>Total</td><td class="num">${tA}</td><td class="num">${tE}</td><td class="num">${tI}</td></tr></tbody></table></div>`;
   }
-  grid.innerHTML = html;
+  document.getElementById('stats-grid').innerHTML=html;
 }
 
-// ── STATUS / LOGS ──
-function renderStatus() {
-  const ok = logs.filter(l=>l.status==='ok').length;
-  const warn = logs.filter(l=>l.status==='warn').length;
-  const err = logs.filter(l=>l.status==='error').length;
-  const totalRows = logs.reduce((s,l)=>s+(l.rows||0),0);
-
-  document.getElementById('log-summary').innerHTML = `
-    <div class="log-summary-item"><div class="num" style="color:var(--green)">${ok}</div><div class="label">OK</div></div>
-    <div class="log-summary-item"><div class="num" style="color:var(--yellow)">${warn}</div><div class="label">Warnings</div></div>
-    <div class="log-summary-item"><div class="num" style="color:var(--red)">${err}</div><div class="label">Errors</div></div>
-    <div class="log-summary-item"><div class="num">${totalRows}</div><div class="label">Total rows</div></div>
-    <div class="log-summary-item"><div class="num">${totalTabs}</div><div class="label">Tabs</div></div>
-  `;
-
-  const icons = { ok:'✅', warn:'⚠️', error:'❌' };
-  const tagCls = { ok:'tag-ok', warn:'tag-warn', error:'tag-err' };
-
-  document.getElementById('log-wrap').innerHTML = logs
-    .sort((a,b) => { const ord={error:0,warn:1,ok:2}; return ord[a.status]-ord[b.status]; })
-    .map(l => `
-      <div class="log-entry">
-        <div class="log-icon">${icons[l.status]}</div>
-        <div class="log-body">
-          <div class="log-title">${esc(l.tab)} <span class="tag ${tagCls[l.status]}">${l.status}</span></div>
-          <div class="log-detail">${esc(l.msg)}</div>
-          ${l.duration ? `<div class="log-detail">⏱ ${l.duration}ms${l.rows!==undefined?' · '+l.rows+' rows':''}</div>` : ''}
-          ${l.headers ? `<div class="log-detail" style="word-break:break-all">Headers: ${l.headers.filter(h=>h).map(h=>esc(h)).join(', ')}</div>` : ''}
-        </div>
-        <div class="log-time">${l.time}</div>
-      </div>
-    `).join('');
+// ── STATUS ──
+function renderStatusView(){
+  const ok=logs.filter(l=>l.status==='ok').length,warn=logs.filter(l=>l.status==='warn').length,err=logs.filter(l=>l.status==='error').length;
+  document.getElementById('log-summary').innerHTML=`
+    <div class="log-summary-item"><div class="snum" style="color:var(--green)">${ok}</div><div class="label">OK</div></div>
+    <div class="log-summary-item"><div class="snum" style="color:var(--yellow)">${warn}</div><div class="label">Warnings</div></div>
+    <div class="log-summary-item"><div class="snum" style="color:var(--red)">${err}</div><div class="label">Errors</div></div>
+    <div class="log-summary-item"><div class="snum">${allRows.length.toLocaleString()}</div><div class="label">Articles</div></div>`;
+  const ic={ok:'✅',warn:'⚠️',error:'❌'},cl={ok:'tag-ok',warn:'tag-warn',error:'tag-err'};
+  document.getElementById('log-wrap').innerHTML=logs
+    .sort((a,b)=>{const o={error:0,warn:1,ok:2};return o[a.status]-o[b.status];})
+    .map(l=>`<div class="log-entry"><div>${ic[l.status]}</div><div class="log-body">
+      <div class="log-title">${esc(l.source)} <span class="tag ${cl[l.status]}">${l.status}</span></div>
+      <div class="log-detail">${esc(l.msg)}</div>
+      ${l.duration?`<div class="log-detail">⏱ ${l.duration}ms</div>`:''}
+      ${l.headers?`<div class="log-detail">Headers: ${l.headers.join(' | ')}</div>`:''}
+    </div><div class="log-detail">${l.time}</div></div>`).join('');
 }
 
-// ── VIEWS ──
-function showView(v, el) {
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('articles-view').style.display = v==='articles'?'':'none';
-  document.getElementById('stats-view').style.display = v==='stats'?'':'none';
-  document.getElementById('status-view').style.display = v==='status'?'':'none';
-  if (v==='stats') renderStats();
-  if (v==='status') renderStatus();
+// ── views ──
+function showView(v,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  document.querySelectorAll('.view').forEach(d=>d.classList.remove('active'));
+  document.getElementById('v-'+v).classList.add('active');
+  if(v==='sm')renderSM();if(v==='ai')renderAI();if(v==='exclusive')renderExcl();if(v==='stats')renderStats();if(v==='status')renderStatusView();
 }
 
-// ── EXPORT CSV ──
-function exportCSV(type) {
-  let data, filename;
-  if (type==='all') {
-    data = getFiltered().map(r => ({
-      Site:r.site, Date:r.dateStr, Title:r.title, 'Title EN':r.titleEN,
-      Category:r.category, Writer:r.writer, Sessions:r.sessions,
-      URL:r.url, AI:r.ai, Exclusive:r.exclusive,
-    }));
-    filename = 'monthlyfiles_all.csv';
-  } else if (type==='ai') {
-    data = allRows.filter(r=>r.ai==='Yes').map(r => ({
-      Site:r.site, Month:r.month, Date:r.dateStr, Title:r.title,
-      Category:r.category, Writer:r.writer, URL:r.url,
-    }));
-    data.sort((a,b) => a.Site.localeCompare(b.Site)||a.Month.localeCompare(b.Month));
-    filename = 'monthlyfiles_AI_articles.csv';
-  } else if (type==='stats') {
-    data = [];
-    const sites = [...new Set(allRows.map(r=>r.site))].sort();
-    for (const site of sites) {
-      const sR = allRows.filter(r=>r.site===site);
-      const months = [...new Set(sR.map(r=>r.month).filter(Boolean))].sort();
-      for (const m of months) {
-        const mR = sR.filter(r=>r.month===m);
-        data.push({ Site:site, Month:m, 'Total Articles':mR.length,
-          'Exclusive Articles':mR.filter(r=>r.exclusive==='Yes').length,
-          'AI Articles':mR.filter(r=>r.ai==='Yes').length });
-      }
-    }
-    filename = 'monthlyfiles_stats.csv';
-  }
-  const csv = Papa.unparse(data);
-  const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
-  a.click();
+// ── export ──
+function exportCSV(type){
+  let data,fn;
+  if(type==='articles'){const m=document.getElementById('art-month').value;data=allRows.filter(r=>r.month===m).map(r=>({Site:r.site,Date:r.dateStr,Title:r.title,'Title EN':r.titleEN,Category:r.category,Writer:r.writer,Sessions:r.sessions,URL:r.url,AI:r.ai,Exclusive:r.exclusive}));fn=`monthlyfiles_${m}.csv`;}
+  else if(type==='sm'){const m=document.getElementById('sm-month').value;data=allRows.filter(r=>r.site==='SM'&&r.month===m).map(r=>({Date:r.dateStr,Title:r.title,'Title EN':r.titleEN,Category:r.category,Writer:r.writer,Sessions:r.sessions,URL:r.url,AI:r.ai,Exclusive:r.exclusive}));fn=`monthlyfiles_SM_${m}.csv`;}
+  else if(type==='ai'){data=allRows.filter(r=>r.ai==='Yes').map(r=>({Site:r.site,Month:r.month,Date:r.dateStr,Title:r.title,Category:r.category,Writer:r.writer,URL:r.url}));data.sort((a,b)=>a.Site.localeCompare(b.Site)||a.Month.localeCompare(b.Month));fn='monthlyfiles_AI.csv';}
+  else if(type==='exclusive'){data=allRows.filter(r=>r.exclusive==='Yes').map(r=>({Site:r.site,Month:r.month,Date:r.dateStr,Title:r.title,Category:r.category,Writer:r.writer,URL:r.url,AI:r.ai}));data.sort((a,b)=>a.Site.localeCompare(b.Site)||a.Month.localeCompare(b.Month));fn='monthlyfiles_exclusive.csv';}
+  else if(type==='stats'){data=[];for(const site of[...new Set(allRows.map(r=>r.site))].sort()){const sR=allRows.filter(r=>r.site===site);for(const m of[...new Set(sR.map(r=>r.month).filter(Boolean))].sort()){const mR=sR.filter(r=>r.month===m);data.push({Site:site,Month:m,Total:mR.length,Exclusive:mR.filter(r=>r.exclusive==='Yes').length,AI:mR.filter(r=>r.ai==='Yes').length});}}fn='monthlyfiles_stats.csv';}
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+Papa.unparse(data)],{type:'text/csv;charset=utf-8;'}));a.download=fn;a.click();
 }
 
-// ── INIT ──
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('tbody').innerHTML = '<tr><td colspan="10"><div class="loading"><div class="spinner"></div>Loading sheets...</div></td></tr>';
+// ── init ──
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('art-tbody').innerHTML='<tr><td colspan="10"><div class="loading"><div class="spinner"></div>Loading 17 tabs...</div></td></tr>';
   loadAll();
 });
 </script>
